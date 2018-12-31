@@ -41,10 +41,12 @@
                         </thead>
                         <tbody>
                         <tr th:each = "book : ${booksList}">
-                            <td  th:text="${book.title}">Thinking Fast And Slow</td>
+                            <td th:text="${book.title}">Thinking Fast And Slow</td>
                             <td th:text="${book.author}">Dalien Kahneman</td>
-                            <td th:text="${#dates.format(book.year, 'MMM-yyyy')}"></td>
-                            <!--<td th:text="${book.category}">Applied Psychology</td>-->
+                            <td th:text="${book.year}"></td>
+                            <td th:each = "category : ${book.categories}">
+                                <span th:text="${category.name} + ' '"></span>
+                            </td>
                             <td><a th:href="@{/book/{id}(id=${book.id})}"><i class="fab fa-readme"></i></a></td>
                             <td><a th:href="@{/book/{id}/edit(id=${book.id})}"><i class="far fa-edit"></i></a></td>
                             <td><a th:href="@{/book/{id}/delete(id=${book.id})}"><i class="fas fa-trash-alt"></i></a></td>

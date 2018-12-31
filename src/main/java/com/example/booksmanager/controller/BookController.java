@@ -47,13 +47,19 @@ public class BookController {
 
     /**
      * GET book by id
+     * After redirect from book/create: model containt attribute "message"(success)
      * @param id        book_id
      * @param model     attributeValues
      * @return          view template for single book
      */
     @RequestMapping( path = "/book/{id}")
     public String showSingleBook(@PathVariable("id") long id, Model model) {
+        if(!model.containsAttribute("message")){
+            Message message = new Message();
+            model.addAttribute("message", message);
+        }
         model.addAttribute("book", bookService.findById(id));
+        //TODO categories und author müssen links bieten, dazu custom queries
         return BOOK_VIEW;
     }
 
@@ -71,7 +77,6 @@ public class BookController {
         Message message = new Message();
         if(books.isEmpty()){
             message.setInfo("There are no books in the database.");
-            modelAndView.addObject("message", message);
         }
         // If pageSize == null, return initial page size
         int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
@@ -88,6 +93,7 @@ public class BookController {
         modelAndView.addObject("selectedPageSize", evalPageSize);
         modelAndView.addObject("pageSizes", PAGE_SIZES);
         modelAndView.addObject("pager", pager);
+        modelAndView.addObject("message", message);
 
         return modelAndView;
     }
@@ -152,32 +158,32 @@ public class BookController {
             //TODO redirect & INFO sodass erst nach 'yes' erstellt wird
         }*/
         Book createdBook = bookService.create(book);
-        model.addAttribute("book", createdBook);
         message.setSuccess("New Book added.");
-        model.addAttribute("message", message);
+        attr.addFlashAttribute("message", message);
 
         return "redirect:/book/" + createdBook.getId();
     }
 
     /**
      * FORM for EDIT book
+     * In case of redirect model will contain "book"
      * @param id        book_id
      * @param model     attributeValues
      * @return          BOOK_EDIT_FORM_VIEW
      */
     @GetMapping("/book/{id}/edit")
     public String editBook(@PathVariable("id") long id, Model model) {
-        /*
-            in case of redirection from '/article/{id}/update'
-            model will contain article with field values
-        */
-        if (!model.containsAttribute("book")) {
-            //TODO es muss geklärt werden wie gecheckte felder übergeben werden
-            model.addAttribute("book", bookService.findById(id));
-            Set<Category> categories = categoryService.getCategories();
-            model.addAttribute("allCategories", categories);
-        }
+        Message message = new Message();
+        Book book = bookService.findById(id);
+        Set<Category> allCategories = categoryService.getCategories();
 
+        if (!model.containsAttribute("book")) {
+            model.addAttribute("book", book);
+        } else{
+            message.setError("Please correct the field values.");
+        }
+        model.addAttribute("allCategories", allCategories);
+        model.addAttribute("message", message);
         return BOOK_EDIT_FORM_VIEW;
     }
 
@@ -194,17 +200,17 @@ public class BookController {
      */
     @RequestMapping(path = "/book/{id}/update", method = RequestMethod.POST)
     public String updateBook(@PathVariable("id") long id, @Valid Book bookDetails,
-                             BindingResult result, Model model, RedirectAttributes attr,
-                             @RequestParam(value="selectedCategory")String[] categories){
+                             BindingResult result, Model model, RedirectAttributes attr /*,
+                             @RequestParam(value="selectedCategory")String[] categories*/){
 
         //filter categories from multiple select
-        Set<Category> selectedCat = new HashSet<>();
+        /*Set<Category> selectedCat = new HashSet<>();
         for(String s: categories){
             Long catId = Long.valueOf(s);
             Category cat = categoryService.findById(catId);
             selectedCat.add(cat);
         }
-        bookDetails.setCategories(selectedCat);
+        bookDetails.setCategories(selectedCat);*/
 
         if (result.hasErrors() /*|| bookService.titleAndAuthorValid(bookDetails) == false*/) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.book", result);
