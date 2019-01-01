@@ -13,6 +13,8 @@ public interface CategoryService {
 
     Set<Category> getCategories();
 
+    Set<Book> getBooksInCategory(Category category);
+
     Category findById(Long id);
 
     void delete(Long id);
@@ -23,6 +25,8 @@ public interface CategoryService {
 
     Page<Category> findAll(Pageable pageable);
 
-    public Category getLatestEntry();
+    Category getLatestEntry();
+
+    boolean nameIsValid(Category category);
 
 }

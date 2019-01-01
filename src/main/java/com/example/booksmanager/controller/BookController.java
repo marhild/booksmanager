@@ -73,11 +73,12 @@ public class BookController {
     public ModelAndView showAllBooksWithPagination(@RequestParam("pageSize") Optional<Integer> pageSize,
                                                    @RequestParam("page") Optional<Integer> page) {
         ModelAndView modelAndView = new ModelAndView(BOOK_LIST_VIEW);
-        Set<Book> books = bookService.getBooks();
+        //TODO unnötige kommentare entfernen
+        //Set<Book> books = bookService.getBooks();
         Message message = new Message();
-        if(books.isEmpty()){
+        /*if(books.isEmpty()){
             message.setInfo("There are no books in the database.");
-        }
+        }*/
         // If pageSize == null, return initial page size
         int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
         /*
@@ -87,6 +88,9 @@ public class BookController {
         int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() - 1;
 
         Page<Book> booksList = bookService.findAll(PageRequest.of(evalPage, evalPageSize));
+        if(booksList.isEmpty()){
+            message.setInfo("There are no books in the database.");
+        }
         PagerModel pager = new PagerModel(booksList.getTotalPages(),booksList.getNumber(),BUTTONS_TO_SHOW);
 
         modelAndView.addObject("booksList",booksList);
@@ -99,7 +103,7 @@ public class BookController {
     }
 
     /**
-     * FORM for NEW article
+     * FORM for NEW Book
      * in case of redirection model will contain book
      * @param model     attributesValues
      * @return          BOOK_ADD_FORM_VIEW
@@ -110,13 +114,11 @@ public class BookController {
         Message message = new Message();
         if (!model.containsAttribute("book")) {
             model.addAttribute("book", new Book());
-            //TODO categories bei redirect nicht markiert
         }
         else{
             message.setError("Please correct the field errors.");
         }
         Set<Category> allCategories = categoryService.getCategories();
-        //TODO multSelect muss eingearbeitet werden
         model.addAttribute("allCategories", allCategories);
         model.addAttribute("message", message);
 
@@ -136,16 +138,8 @@ public class BookController {
      *          else:      redirect: '/book/{bookId}'
      */
     @RequestMapping(path = "/book/create", method = RequestMethod.POST)
-    public String createBook(@Valid Book book, BindingResult result, Model model, RedirectAttributes attr,
-                             @RequestParam(value="selectedCategory")String[] categories) {
+    public String createBook(@Valid Book book, BindingResult result, Model model, RedirectAttributes attr) {
         Message message = new Message();
-        Set<Category> selectedCat = new HashSet<>();
-        for(String s: categories){
-            Long catId = Long.valueOf(s);
-            Category cat = categoryService.findById(catId);
-            selectedCat.add(cat);
-        }
-        book.setCategories(selectedCat);
 
         if (result.hasErrors()) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.book", result);
@@ -172,7 +166,7 @@ public class BookController {
      * @return          BOOK_EDIT_FORM_VIEW
      */
     @GetMapping("/book/{id}/edit")
-    public String editBook(@PathVariable("id") long id, Model model) {
+    public String editBookForm(@PathVariable("id") long id, Model model) {
         Message message = new Message();
         Book book = bookService.findById(id);
         Set<Category> allCategories = categoryService.getCategories();
@@ -188,11 +182,11 @@ public class BookController {
     }
 
     /**
-     * UPDATE article with field values from ARTICLE_EDIT_FORM_VIEW
+     * UPDATE book with field values from BOOK_EDIT_FORM_VIEW
      * After the redirect: flash attributes pass attributes to the model
      * @param id                book_id
      * @param bookDetails       entity
-     * @param result            result of validation of field values from ARTICLE_ADD_FORM_VIEW
+     * @param result            result of validation of field values from BOOK_EDIT_FORM_VIEW
      * @param model             attributeValues
      * @param attr              stores flash attributes; used when method returns a redirect view name
      * @return  if !valid: redirect: '/book/{bookId}/edit'
@@ -200,26 +194,18 @@ public class BookController {
      */
     @RequestMapping(path = "/book/{id}/update", method = RequestMethod.POST)
     public String updateBook(@PathVariable("id") long id, @Valid Book bookDetails,
-                             BindingResult result, Model model, RedirectAttributes attr /*,
-                             @RequestParam(value="selectedCategory")String[] categories*/){
-
-        //filter categories from multiple select
-        /*Set<Category> selectedCat = new HashSet<>();
-        for(String s: categories){
-            Long catId = Long.valueOf(s);
-            Category cat = categoryService.findById(catId);
-            selectedCat.add(cat);
-        }
-        bookDetails.setCategories(selectedCat);*/
-
+                             BindingResult result, Model model, RedirectAttributes attr){
+        Message message = new Message();
         if (result.hasErrors() /*|| bookService.titleAndAuthorValid(bookDetails) == false*/) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.book", result);
             attr.addFlashAttribute("book", bookDetails);
-            return "redirect:/article/" + bookDetails.getId() + "/edit";
+            message.setError("Please correct the field errors.");
+            attr.addFlashAttribute("message", message);
+            return "redirect:/book/" + bookDetails.getId() + "/edit";
         }
         bookService.update(id, bookDetails);
-        model.addAttribute("book", bookService.findById(id));
-        model.addAttribute("msg", "Book has been updated.");
+        message.setSuccess("Book has been updated.");
+        attr.addFlashAttribute("message", message);
         return "redirect:/book/" + id;
     }
 
@@ -231,11 +217,29 @@ public class BookController {
      */
     @RequestMapping(path = "/book/{id}/delete", method = RequestMethod.GET)
     public String deleteBook(@PathVariable("id") long id, Model model) {
-        Book book = bookService.findById(id);
-        String title = book.getTitle();
+        Message message = new Message();
         bookService.delete(id);
-
-        model.addAttribute("msg", "Book" + " '" + title + "' " + "has been deleted.");
+        message.setSuccess("Book has been deleted.");
+        model.addAttribute("message", message);
         return "redirect:/books";
+        //TODO dieses buch muss aus allen betroffenen categorien gelöscht werden
+    }
+
+    /**
+     * DELETE book by id from database
+     * @param id            category_id
+     * @param model         attributeValues
+     * @return              redirect: '/categories'
+     */
+    @RequestMapping(path = "/book/{bookId}/removeFromCategory/{catId}", method = RequestMethod.GET)
+    public String removeBookFromCategory(@PathVariable("bookId") long bookId, @PathVariable("catId") long catId, Model model) {
+        Message message = new Message();
+        Book book = bookService.findById(bookId);
+        Category category = categoryService.findById(catId);
+        bookService.removeFromCategory(book, category);
+        message.setSuccess(book.getTitle() +" has been deleted from " + category.getName() +".");
+        model.addAttribute("message", message);
+        return "redirect:/category/" + category.getId();
+        //TODO diese categories muss dann aus allen betroffenen Büchern gelöscht werden
     }
 }

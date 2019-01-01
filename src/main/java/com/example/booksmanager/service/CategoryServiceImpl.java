@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -26,6 +27,12 @@ public class CategoryServiceImpl implements CategoryService{
         Set<Category> categorySet = new HashSet<>();
         categoryRepository.findAll().iterator().forEachRemaining(categorySet::add);
         return categorySet;
+    }
+
+    @Override
+    public Set<Book> getBooksInCategory(Category category){
+        Set<Book> booksInCategory = category.getBooks();
+        return booksInCategory;
     }
 
     @Override
@@ -53,7 +60,7 @@ public class CategoryServiceImpl implements CategoryService{
     public void update(Long id, Category category){
         Category currentCat = findById(id);
         currentCat.setName(category.getName());
-
+        currentCat.setUpdatedAt(new Date());
         categoryRepository.save(currentCat);
     }
 
@@ -75,18 +82,15 @@ public class CategoryServiceImpl implements CategoryService{
         }
     }
 
-    /*
     @Override
-    public Set<Category> getCategoriesIdByBookId(Long BookId){
-        Set<Category> bookCategories = new HashSet<>();
-        Set<Long> CategoryIds =  categoryRepository.getCategoriesIdByBookId(BookId);
+    public boolean nameIsValid(Category category){
+        Set<Category> categories = categoryRepository.findCategoryByName(category.getName());
 
-        for (Long id : CategoryIds) {
-            System.out.println("Category_id" + id);
-            bookCategories.add(findById(id));
+        //no categories with same name exist in db
+        if(categories.isEmpty()){
+            return true;
         }
-
-        return bookCategories;
-    }*/
+        return false;
+    }
 
 }

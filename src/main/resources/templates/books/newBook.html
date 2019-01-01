@@ -9,16 +9,7 @@
 
     <div class="container-fluid">
 
-        <!-- Message Box-->
-        <div th:if="${message.success != null}" class="alert alert-success" role="alert">
-            <span th:text="${message.success}"></span>
-        </div>
-        <div th:if="${message.error != null}" class="alert alert-danger" role="alert">
-            <span th:text="${message.error}"></span>
-        </div>
-        <div th:if="${message.info != null}" class="alert alert-info" role="alert">
-            <span th:text="${message.info}"></span>
-        </div>
+        <th:block th:include="fragments/messageBox"></th:block>
 
         <!-- DataTables Example -->
         <div class="card mb-3">
@@ -32,32 +23,22 @@
                     <div class="form-group col-lg-8 col-md-12 col-sx-12">
                         <label for="title"><h6>Title:</h6></label>
                         <input th:field="*{title}" id="title" type="text" class="form-control">
-                        <span class="errorMsg" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></span>
+                        <span class="error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></span>
                     </div>
 
                     <div class="form-group col-lg-8 col-md-12 col-sx-12">
                         <label for="author"><h6>Author:</h6></label>
                         <input th:field="*{author}" id="author" type="text" class="form-control">
-                        <span class="errorMsg" th:if="${#fields.hasErrors('author')}" th:errors="*{author}"></span>
+                        <span class="error" th:if="${#fields.hasErrors('author')}" th:errors="*{author}"></span>
                     </div>
 
                     <div class="form-group col-lg-8 col-md-12 col-sx-12">
                         <label for="category"><h6>Category:</h6></label>
-                            <select id="category" class="form-control"
-                                    name="selectedCategory" multiple="multiple">
-                                <option th:each="category : ${allCategories}"
-                                        th:value="${category.id}"
-                                        th:text="${category.name}">
-                                </option>
-                            </select>
-                        <span class="errorMsg" th:if="${#fields.hasErrors('categories')}" th:errors="*{categories}"></span>
+                        <select id="category" class="form-control" th:field="*{categories}" multiple="multiple">
+                            <option th:each="category : ${allCategories}" th:text="${category.name}" th:value="${category.id}"></option>
+                        </select>
+                        <!--<span class="error" th:if="${#fields.hasErrors('categories')}" th:errors="*{categories}"></span>-->
                     </div>
-
-                    <!--<div class="form-group col-lg-3 col-md-3 col-sx-12">
-                        <label for="datepicker"><h6>Published:</h6></label>
-                        <input width="276" class="form-control" th:field="*{year}" id="datepicker"/>
-                        <span class="errorMsg" th:if="${#fields.hasErrors('year')}" th:errors="*{year}"></span>
-                    </div>-->
 
                     <div class="form-group col-lg-4 col-md-4 col-sx-12">
                         <label for="datepicker"><h6>Published:</h6></label>
@@ -74,14 +55,14 @@
                                     </div>
                                 </div>
                             </div>
-                            <span class="errorMsg" th:if="${#fields.hasErrors('year')}" th:errors="*{year}"></span>
+                            <span class="error" th:if="${#fields.hasErrors('year')}" th:errors="*{year}"></span>
                         </div>
                     </div>
 
                      <div class="form-group col-sm-8">
                          <label for="description"><h6>Description:</h6></label>
                          <textarea class="form-control" th:field="*{description}" id="description"></textarea>
-                         <span class="errorMsg" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
+                         <span class="error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
 
                      </div>
                     <div class="col-sm-8">

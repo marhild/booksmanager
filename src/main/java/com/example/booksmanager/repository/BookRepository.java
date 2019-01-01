@@ -28,4 +28,5 @@ public interface BookRepository extends PagingAndSortingRepository<Book, Long> {
      *                  specified by the Pageable object
      */
     Page<Book> findAll(Pageable pageable);
+
 }

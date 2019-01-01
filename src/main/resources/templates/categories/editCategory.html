@@ -1,10 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<html xmlns:th="http://www.thymeleaf.org">
 
-</body>
-</html>
+<th:block th:include="fragments/header"></th:block>
+
+<th:block th:include="fragments/sidebarCategories"></th:block>
+
+<div id="content-wrapper">
+
+    <div class="container-fluid">
+
+        <th:block th:include="fragments/messageBox"></th:block>
+
+        <!-- DataTables Example -->
+        <div class="card mb-3">
+            <div class="card-header">
+                Edit Category
+            </div>
+            <div class="card-body">
+
+                <form th:object="${category}" th:action="@{/category/{id}/update(id=${category.id})}" th:method="post">
+
+                    <div class="form-group col-lg-8 col-md-12 col-sx-12">
+                        <label for="name"><h6>Category Name:</h6></label>
+                        <input th:field="*{name}" id="name" type="text" class="form-control">
+                        <span class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+                    </div>
+
+                    <div class="col-sm-8">
+                        <button type="submit" class="btn btn-dark">Save</button>
+                        <a class="btn btn-info" th:href="@{'/categories'}">Cancel</a>
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+
+    <th:block th:include="fragments/footer"></th:block>

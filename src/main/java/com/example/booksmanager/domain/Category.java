@@ -25,6 +25,10 @@ public class Category extends DateAudit {
         setUpdatedAt(new Date());
     }
 
+    //for uncategorized books
+    public Category(String name){
+        this.name = name;
+    }
 
     public Long getId() {
         return id;

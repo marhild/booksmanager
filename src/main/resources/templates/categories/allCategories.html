@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:include="fragments/header"></th:block>
+
+<th:block th:include="fragments/sidebarCategories"></th:block>
+
+<div id="content-wrapper">
+
+    <div class="container-fluid">
+
+        <th:block th:include="fragments/messageBox"></th:block>
+
+        <!-- Table -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <a class="btn btn-dark" th:href="@{/category/new}"><i class="far fa-plus-square"></i> Add Category</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                        <tr>
+                            <th>Category Name</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each = "category : ${catList}">
+                            <td th:text="${category.name}">Thinking Fast And Slow</td>
+                            <td><a th:href="@{/category/{id}(id=${category.id})}"><i class="fab fa-readme"></i></a></td>
+                            <td><a th:href="@{/category/{id}/edit(id=${category.id})}"><i class="far fa-edit"></i></a></td>
+                            <td><a th:href="@{/category/{id}/delete(id=${category.id})}"><i class="fas fa-trash-alt"></i></a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="row">
+
+                    <div class="form-group col-md-2">
+                        <select class="form-control" id="pageSizeSelect">
+                            <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}"
+                                    th:value="${pageSize}"
+                                    th:selected="${pageSize} == ${selectedPageSize}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-md-6"></div>
+
+                    <div th:if="${catList.totalPages != 1}" class="form-group col-md-4 pagination">
+                        <ul class="pagination">
+                            <li th:class="${catList.number == 0} ? disabled">
+                                <a class="page-link" th:href="@{/categories/(pageSize=${selectedPageSize}, page=1)}">«</a>
+                            </li>
+                            <li th:class="${catList.number == 0} ? disabled">
+                                <a class="page-link" th:href="@{/categories/(pageSize=${selectedPageSize}, page=${catList.number})}">←</a>
+                            </li>
+                            <li th:class="${catList.number == (page - 1)} ? 'active pointer-disabled'"
+                                th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
+                                <a class="page-link" th:href="@{/categories/(pageSize=${selectedPageSize}, page=${page})}" th:text="${page}"></a>
+                            </li>
+                            <li th:class="${catList.number + 1 == catList.totalPages} ? disabled">
+                                <a class="page-link" th:href="@{/categories/(pageSize=${selectedPageSize}, page=${catList.number + 2})}">→</a>
+                            </li>
+                            <li th:class="${catList.number + 1 == catList.totalPages} ? disabled">
+                                <a class="page-link" th:href="@{/categories/(pageSize=${selectedPageSize}, page=${catList.totalPages})}">»</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+
+    <th:block th:include="fragments/footer"></th:block>

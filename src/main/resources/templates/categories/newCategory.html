@@ -3,22 +3,13 @@
 
 <th:block th:include="fragments/header"></th:block>
 
-<th:block th:include="fragments/sidebarBooks"></th:block>
+<th:block th:include="fragments/sidebarCategories"></th:block>
 
 <div id="content-wrapper">
 
     <div class="container-fluid">
 
-        <!-- Message Box-->
-        <div th:if="${message.success != null}" class="alert alert-success" role="alert">
-            <span th:text="${message.success}"></span>
-        </div>
-        <div th:if="${message.error != null}" class="alert alert-danger" role="alert">
-            <span th:text="${message.error}"></span>
-        </div>
-        <div th:if="${message.info != null}" class="alert alert-info" role="alert">
-            <span th:text="${message.info}"></span>
-        </div>
+        <th:block th:include="fragments/messageBox"></th:block>
 
         <!-- DataTables Example -->
         <div class="card mb-3">
@@ -32,7 +23,7 @@
                     <div class="form-group col-sm-8">
                         <label for="name"><h6>Title:</h6></label>
                         <input th:field="*{name}" id="name" type="text" class="form-control">
-                        <span class="errorMsg" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+                        <span class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
                     </div>
 
                     <div class="col-sm-8">

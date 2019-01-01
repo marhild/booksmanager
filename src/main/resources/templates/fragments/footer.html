@@ -37,19 +37,6 @@
     <!-- Demo scripts for this page-->
     <script th:src="@{/js/demo/datatables-demo.js}"></script>
 
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        $(document).ready(function() {
-            changePageAndSize();
-        });
-        function changePageAndSize() {
-            $('#pageSizeSelect').change(function(evt) {
-                window.location.replace("/?pageSize=" + this.value + "&page=1");
-            });
-        }
-        /*]]>*/
-    </script>
-
     <script type="text/javascript" th:src="@{/vendor/bootstrap-datepicker/js/bootstrap-datepicker.js}"></script>
     <script type="text/javascript" th:src="@{/vendor/bootstrap-daterangepicker/date.js}"></script>
     <script th:src="@{/vendor/advanced-form-components.js}"></script>
