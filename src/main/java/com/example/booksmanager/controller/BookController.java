@@ -73,12 +73,7 @@ public class BookController {
     public ModelAndView showAllBooksWithPagination(@RequestParam("pageSize") Optional<Integer> pageSize,
                                                    @RequestParam("page") Optional<Integer> page) {
         ModelAndView modelAndView = new ModelAndView(BOOK_LIST_VIEW);
-        //TODO unnötige kommentare entfernen
-        //Set<Book> books = bookService.getBooks();
         Message message = new Message();
-        /*if(books.isEmpty()){
-            message.setInfo("There are no books in the database.");
-        }*/
         // If pageSize == null, return initial page size
         int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
         /*

@@ -19,7 +19,6 @@ public class Author extends DateAudit {
     @NotEmpty
     private String lastName;
 
-    @NotEmpty
     private String fullName;
 
     /*

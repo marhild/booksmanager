@@ -61,11 +61,7 @@ public class CategoryController {
         ModelAndView modelAndView = new ModelAndView(CATEGORY_VIEW);
         Category category = categoryService.findById(id);
         Set<Book> books = categoryService.getBooksInCategory(category);
-
         Message message = new Message();
-        if(books.isEmpty()){
-            message.setInfo("There are no books in this category.");
-        }
         //redirect
         if(!model.containsAttribute("message")){
             model.addAttribute("message", message);
@@ -83,6 +79,9 @@ public class CategoryController {
         List<Book> booksConverted = new ArrayList<>();          //convert Set into List
         booksConverted.addAll(books);
         Page<Book> booksList = new PageImpl<Book>(booksConverted, PageRequest.of(evalPage, evalPageSize), books.size());
+        if(booksList.isEmpty()){
+            message.setInfo("There are no books in this category.");
+        }
         PagerModel pager = new PagerModel(booksList.getTotalPages(),booksList.getNumber(),BUTTONS_TO_SHOW);
 
         modelAndView.addObject("booksList",booksList);
@@ -105,11 +104,7 @@ public class CategoryController {
     public ModelAndView showAllCategoriesWithPagination(@RequestParam("pageSize") Optional<Integer> pageSize,
                                                   @RequestParam("page") Optional<Integer> page) {
         ModelAndView modelAndView = new ModelAndView(CATEGORY_LIST_VIEW);
-        Set<Category> categories = categoryService.getCategories();
         Message message = new Message();
-        if(categories.isEmpty()){
-            message.setInfo("There are no categories in the database.");
-        }
         // If pageSize == null, return initial page size
         int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
         /*
@@ -119,6 +114,9 @@ public class CategoryController {
         int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() - 1;
 
         Page<Category> catList = categoryService.findAll(PageRequest.of(evalPage, evalPageSize));
+        if(catList.isEmpty()){
+            message.setInfo("There are no categories in the database.");
+        }
         PagerModel pager = new PagerModel(catList.getTotalPages(),catList.getNumber(),BUTTONS_TO_SHOW);
 
         modelAndView.addObject("catList",catList);
@@ -176,14 +174,15 @@ public class CategoryController {
         if(!categoryService.nameIsValid(category)){
             attr.addFlashAttribute("org.springframework.validation.BindingResult.category", result);
             attr.addFlashAttribute("category", category);
-            message.setError("This category already exists.");
+            message.setInfo("This category already exists.");
             attr.addFlashAttribute("message", message);
             return "redirect:/category/new";
         }
         Category createdCategory = categoryService.create(category);
         model.addAttribute("category", createdCategory);
         message.setSuccess("New Category added.");
-        model.addAttribute("message", message);
+        //TODO Success Message taucht nicht auf - nur info darüber, dass es keine Bücher in der datenbank gibt
+        attr.addFlashAttribute("message", message);
 
         return "redirect:/category/" + createdCategory.getId();
     }

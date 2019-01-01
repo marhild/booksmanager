@@ -5,16 +5,10 @@ import com.example.booksmanager.dateAudit.DateAudit;
 public class Message{
 
     private String success = null;
-    private String error = null;;
-    private String info = null;;
+    private String error = null;
+    private String info = null;
 
     public Message() {
-    }
-
-    public Message(String success, String error, String info) {
-        this.success = success;
-        this.error = error;
-        this.info = info;
     }
 
     public String getSuccess() {

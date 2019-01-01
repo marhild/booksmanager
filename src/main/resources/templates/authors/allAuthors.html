@@ -1,10 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<html xmlns:th="http://www.thymeleaf.org">
 
-</body>
-</html>
+<th:block th:include="fragments/header"></th:block>
+
+<th:block th:include="fragments/sidebarAuthors"></th:block>
+
+<div id="content-wrapper">
+
+    <div class="container-fluid">
+
+        <th:block th:include="fragments/messageBox"></th:block>
+
+        <!-- Table -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <a class="btn btn-dark" th:href="@{/author/new}"><i class="far fa-plus-square"></i> Add Author</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each = "author : ${authorsList}">
+                            <td th:text="${author.fullname}">
+                            <td><a th:href="@{/author/{id}(id=${author.id})}"><i class="fab fa-readme"></i></a></td>
+                            <td><a th:href="@{/author/{id}/edit(id=${author.id})}"><i class="far fa-edit"></i></a></td>
+                            <td><a th:href="@{/author/{id}/delete(id=${author.id})}"><i class="fas fa-trash-alt"></i></a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="row">
+
+                    <div class="form-group col-md-2">
+                        <select class="form-control" id="pageSizeSelect">
+                            <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}"
+                                    th:value="${pageSize}"
+                                    th:selected="${pageSize} == ${selectedPageSize}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-md-6"></div>
+
+                    <div th:if="${authorsList.totalPages != 1}" class="form-group col-md-4 pagination">
+                        <ul class="pagination">
+                            <li th:class="${authorsList.number == 0} ? disabled">
+                                <a class="page-link" th:href="@{/authors/(pageSize=${selectedPageSize}, page=1)}">«</a>
+                            </li>
+                            <li th:class="${authorsList.number == 0} ? disabled">
+                                <a class="page-link" th:href="@{/authors/(pageSize=${selectedPageSize}, page=${authorsList.number})}">←</a>
+                            </li>
+                            <li th:class="${authorsList.number == (page - 1)} ? 'active pointer-disabled'"
+                                th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
+                                <a class="page-link" th:href="@{/authors/(pageSize=${selectedPageSize}, page=${page})}" th:text="${page}"></a>
+                            </li>
+                            <li th:class="${authorsList.number + 1 == authorsList.totalPages} ? disabled">
+                                <a class="page-link" th:href="@{/authors/(pageSize=${selectedPageSize}, page=${authorsList.number + 2})}">→</a>
+                            </li>
+                            <li th:class="${authorsList.number + 1 == authorsList.totalPages} ? disabled">
+                                <a class="page-link" th:href="@{/authors/(pageSize=${selectedPageSize}, page=${authorsList.totalPages})}">»</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+
+    <th:block th:include="fragments/footer"></th:block>

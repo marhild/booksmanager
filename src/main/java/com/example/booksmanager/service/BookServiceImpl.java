@@ -14,6 +14,9 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * @author platoiscoding.com
+ */
 @Service
 public class BookServiceImpl implements BookService {
 
@@ -25,6 +28,9 @@ public class BookServiceImpl implements BookService {
         this.categoryRepository = categoryRepository;
     }
 
+    /**
+     * @return all books in database
+     */
     @Override
     public Set<Book> getBooks(){
         Set<Book> bookSet = new HashSet<>();
@@ -32,18 +38,36 @@ public class BookServiceImpl implements BookService {
         return bookSet;
     }
 
+    /**
+     * finds a book from database by id
+     * @param id    book_id
+     * @return      book with matching id
+     */
     @Override
     public Book findById(Long id){
         Optional<Book> bookOptional = bookRepository.findById(id);
-
         if (!bookOptional.isPresent()) {
             throw new RuntimeException("Book Not Found!");
         }
-
         return bookOptional.get();
-
     }
 
+    /**
+     * creates and saves new book into database
+     * @param book  entity
+     * @return      newest book from database(this book)
+     */
+    @Override
+    public Book create(Book book){
+        bookRepository.save(book);
+        return getLatestEntry();
+    }
+
+    /**
+     * updates book from database with fields values in bookdetails
+     * @param id    book_id
+     * @param book  bookdetails
+     */
     @Override
     public void update(Long id, Book book){
         Book currentBook = findById(id);
@@ -56,19 +80,17 @@ public class BookServiceImpl implements BookService {
         bookRepository.save(currentBook);
     }
 
+    /**
+     * deletes book from database
+     * @param id    book_id
+     */
     @Override
     public void delete(Long id){
         bookRepository.deleteById(id);
     }
 
-    @Override
-    public Book create(Book book){
-        bookRepository.save(book);
-        return getLatestEntry();
-    }
-
     /**
-     * @return newest article in the databse
+     * @return newest article in the database
      */
     @Override
     public Book getLatestEntry(){
@@ -82,9 +104,9 @@ public class BookServiceImpl implements BookService {
     }
 
     /**
-     * removes a category from a book and vice versa
-     * @param book
-     * @param category
+     * Will remove a book from a category nad vice versa
+     * @param book          book to remove from category
+     * @param category      category to remove from book
      */
     @Override
     public void removeFromCategory(Book book, Category category){
@@ -109,20 +131,24 @@ public class BookServiceImpl implements BookService {
      * @param book
      * @return true if there is no book with the same author and title in the database
      */
-    /*
+
     @Override
     public boolean titleAndAuthorValid(Book book) {
-        Set<Book> articleSet = new HashSet<>();
+        Set<Book> bookSet = new HashSet<>();
         bookRepository.findByTitleAndAuthor(book.getTitle(),book.getAuthor())
-                .iterator().forEachRemaining(articleSet::add);
-        if (!articleSet.isEmpty()) {
+                .iterator().forEachRemaining(bookSet::add);
+        if (!bookSet.isEmpty()) {
             return false;
         } else {
             return true;
         }
-    }*/
+    }
 
-    //Pagination
+    /**
+     * A Page is a sublist of a list of objects
+     * @param pageable  Abstract interface for pagination information
+     * @return          all books from databse as Page<> object
+     */
     @Override
     public Page<Book> findAll(Pageable pageable) {
         return bookRepository.findAll(pageable);

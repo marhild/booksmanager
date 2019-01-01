@@ -86,7 +86,6 @@ public class CategoryServiceImpl implements CategoryService{
     public boolean nameIsValid(Category category){
         Set<Category> categories = categoryRepository.findCategoryByName(category.getName());
 
-        //no categories with same name exist in db
         if(categories.isEmpty()){
             return true;
         }
