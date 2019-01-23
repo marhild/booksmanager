@@ -113,6 +113,7 @@ public class BookServiceImpl implements BookService {
         Set<Category> categoriesOfBook = book.getCategories();
         Set<Book> booksOfCategory = category.getBooks();
 
+
         //remove Book from Category
         booksOfCategory.removeIf( b -> (b.getId() == book.getId()));
         category.setBooks(booksOfCategory);
