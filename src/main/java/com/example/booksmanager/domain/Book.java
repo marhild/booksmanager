@@ -1,9 +1,7 @@
 package com.example.booksmanager.domain;
 
-
 import com.example.booksmanager.dateAudit.DateAudit;
 import org.hibernate.annotations.Type;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import java.util.Date;
@@ -16,14 +14,15 @@ public class Book extends DateAudit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "book_id")
     private Long id;
 
     @NotEmpty
     private String title;
 
     @NotEmpty
-    /*@ManyToMany(mappedBy = "books")*/
-    private String author;
+    @ManyToMany(mappedBy = "books")
+    private Author author;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "book_categories",
@@ -61,14 +60,6 @@ public class Book extends DateAudit {
         this.title = title;
     }
 
-    public String getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(String author) {
-        this.author = author;
-    }
-
     public String getDescription() {
         return description;
     }
@@ -91,5 +82,13 @@ public class Book extends DateAudit {
 
     public void setCategories(Set<Category> categories) {
         this.categories = categories;
+    }
+
+    public Author getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(Author author) {
+        this.author = author;
     }
 }

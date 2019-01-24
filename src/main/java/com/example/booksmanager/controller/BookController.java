@@ -18,13 +18,16 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
 /**
  * @author platoiscoding.com
  */
+//TODO dropdown für editBook und newBook für AUTHOR Entity
+//TODO showSingleBook und allBooks muss im template: book.author.fullname werden
+//TODO SQL queries in repositories müssen getestet werden/funken bestimmt nicht
+//TODO in BookService muss evtl getAuthor() geändert werden
 @Controller
 public class BookController {
 
@@ -47,7 +50,7 @@ public class BookController {
 
     /**
      * GET book by id
-     * After redirect from book/create: model containt attribute "message"(success)
+     * After redirect from book/create: model contains attribute "message"(success)
      * @param id        book_id
      * @param model     attributeValues
      * @return          view template for single book
@@ -109,8 +112,7 @@ public class BookController {
         Message message = new Message();
         if (!model.containsAttribute("book")) {
             model.addAttribute("book", new Book());
-        }
-        else{
+        }else{
             message.setError("Please correct the field errors.");
         }
         Set<Category> allCategories = categoryService.getCategories();
@@ -147,7 +149,7 @@ public class BookController {
             //TODO redirect & INFO sodass erst nach 'yes' erstellt wird
         }*/
         Book createdBook = bookService.create(book);
-        message.setSuccess("New Book added.");
+        message.setSuccess("New Book Added.");
         attr.addFlashAttribute("message", message);
 
         return "redirect:/book/" + createdBook.getId();
@@ -171,6 +173,7 @@ public class BookController {
         } else{
             message.setError("Please correct the field values.");
         }
+        //TODO title and author valid
         model.addAttribute("allCategories", allCategories);
         model.addAttribute("message", message);
         return BOOK_EDIT_FORM_VIEW;
@@ -191,6 +194,7 @@ public class BookController {
     public String updateBook(@PathVariable("id") long id, @Valid Book bookDetails,
                              BindingResult result, Model model, RedirectAttributes attr){
         Message message = new Message();
+        //TODO if bedingung
         if (result.hasErrors() /*|| bookService.titleAndAuthorValid(bookDetails) == false*/) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.book", result);
             attr.addFlashAttribute("book", bookDetails);
@@ -217,12 +221,13 @@ public class BookController {
         message.setSuccess("Book has been deleted.");
         model.addAttribute("message", message);
         return "redirect:/books";
-        //TODO dieses buch muss aus allen betroffenen categorien gelöscht werden
+        //TODO dieses buch muss aus allen betroffenen categorien gelöscht werden/ oder geschiet das automatisch?
     }
 
     /**
      * DELETE book by id from database
-     * @param id            category_id
+     * @param bookId        book_id
+     * @param catId         category_id
      * @param model         attributeValues
      * @return              redirect: '/categories'
      */

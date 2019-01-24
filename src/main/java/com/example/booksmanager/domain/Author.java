@@ -1,16 +1,18 @@
 package com.example.booksmanager.domain;
 
-
 import com.example.booksmanager.dateAudit.DateAudit;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "authors")
 public class Author extends DateAudit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "author_id")
     private Long id;
 
     @NotEmpty
@@ -19,16 +21,18 @@ public class Author extends DateAudit {
     @NotEmpty
     private String lastName;
 
+    @NotEmpty
     private String fullName;
 
-    /*
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "author_books",
             joinColumns = { @JoinColumn(name = "author_id") },
             inverseJoinColumns = { @JoinColumn(name = "book_id") })
-    private Set<Book> books = new HashSet<>();*/
+    private Set<Book> books = new HashSet<>();
 
     public Author() {
+        setCreatedAt(new Date());
+        setUpdatedAt(new Date());
     }
 
     //TODO add constructor &  getter/setter for books

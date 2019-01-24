@@ -12,6 +12,7 @@ import java.util.Set;
 public class Category extends DateAudit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "category_id")
     Long id;
 
     @NotEmpty

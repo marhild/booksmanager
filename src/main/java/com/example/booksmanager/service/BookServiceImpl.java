@@ -90,14 +90,14 @@ public class BookServiceImpl implements BookService {
     }
 
     /**
-     * @return newest article in the database
+     * @return newest book in the database
      */
     @Override
     public Book getLatestEntry(){
         Set<Book> books = getBooks();
         if(books.isEmpty()){
             return null;
-        } else{
+        }else{
             Long latestBookId = bookRepository.findTopByOrderByIdDesc();
             return findById(latestBookId);
         }
@@ -132,11 +132,10 @@ public class BookServiceImpl implements BookService {
      * @param book
      * @return true if there is no book with the same author and title in the database
      */
-
     @Override
     public boolean titleAndAuthorValid(Book book) {
-        Set<Book> bookSet = new HashSet<>();
-        bookRepository.findByTitleAndAuthor(book.getTitle(),book.getAuthor())
+        Set<Long> bookSet = new HashSet<>();
+        bookRepository.findByTitleAndAuthor(book.getTitle(),book.getAuthor().getFullName())
                 .iterator().forEachRemaining(bookSet::add);
         if (!bookSet.isEmpty()) {
             return false;

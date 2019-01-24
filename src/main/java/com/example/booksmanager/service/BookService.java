@@ -16,7 +16,7 @@ import java.util.Set;
 public interface BookService {
 
     /**
-     * @return all books in database
+     * @return all books from database
      */
     Set<Book> getBooks();
 
@@ -42,7 +42,7 @@ public interface BookService {
     void update(Long id, Book book);
 
     /**
-     * deletes book from databse
+     * deletes book from database
      * @param id    book_id
      */
     void delete(Long id);

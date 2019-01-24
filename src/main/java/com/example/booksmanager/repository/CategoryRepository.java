@@ -14,7 +14,7 @@ public interface CategoryRepository extends PagingAndSortingRepository<Category,
     /**
      * @return newest categoryId
      */
-    @Query(value = "SELECT MAX(id) FROM Category")
+    @Query(value = "SELECT MAX(category_id) FROM Category")
     Long findTopByOrderByIdDesc();
 
     /**
