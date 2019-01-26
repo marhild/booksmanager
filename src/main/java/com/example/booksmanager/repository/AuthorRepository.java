@@ -13,7 +13,7 @@ public interface AuthorRepository extends PagingAndSortingRepository<Author, Lon
     /**
      * @return newest authorId
      */
-    @Query(value = "SELECT MAX(author_id) FROM Author")
+    @Query(value = "SELECT MAX(id) FROM Author")
     Long findTopByOrderByIdDesc();
 
     /**
@@ -24,9 +24,9 @@ public interface AuthorRepository extends PagingAndSortingRepository<Author, Lon
     Page<Author> findAll(Pageable pageable);
 
     /**
-     * @return newest authorId
+     * @return author by fullname
      */
-    @Query(value = "SELECT fn FROM Author fn WHERE fn.fullName=:fullname")
-    Set<Author> findByAuthorFullName(@Param("fullname") String fullname);
+    @Query(value = "SELECT fn FROM Author fn WHERE fn.fullName=:fullName")
+    Set<Author> findByAuthorFullName(@Param("fullName") String fullName);
 
 }

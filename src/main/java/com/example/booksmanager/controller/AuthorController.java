@@ -21,6 +21,7 @@ import java.util.Optional;
  * @author platoiscoding.com
  */
 @Controller
+//TODO pfad für + new book durch author?
 public class AuthorController {
 
     //view templates
@@ -61,7 +62,7 @@ public class AuthorController {
      * @param page          subset of all authors
      * @return              list view of authors
      */
-    @RequestMapping({"/authors", "/"})
+    @RequestMapping({"/authors"})
     public ModelAndView showAllAuthorsWithPagination(@RequestParam("pageSize") Optional<Integer> pageSize,
                                                    @RequestParam("page") Optional<Integer> page) {
 

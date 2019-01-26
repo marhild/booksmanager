@@ -20,9 +20,12 @@ public class Book extends DateAudit {
     @NotEmpty
     private String title;
 
-    @NotEmpty
-    @ManyToMany(mappedBy = "books")
-    private Author author;
+    //TODO notempty?
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "book_authors",
+            joinColumns = { @JoinColumn(name = "book_id") },
+            inverseJoinColumns = { @JoinColumn(name = "author_id") })
+    private Set<Author> authors = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "book_categories",
@@ -84,11 +87,11 @@ public class Book extends DateAudit {
         this.categories = categories;
     }
 
-    public Author getAuthor() {
-        return author;
+    public Set<Author> getAuthors() {
+        return authors;
     }
 
-    public void setAuthor(Author author) {
-        this.author = author;
+    public void setAuthors(Set<Author> authors) {
+        this.authors = authors;
     }
 }

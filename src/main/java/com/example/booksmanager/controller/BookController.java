@@ -24,9 +24,10 @@ import java.util.Set;
 /**
  * @author platoiscoding.com
  */
-//TODO dropdown für editBook und newBook für AUTHOR Entity
+//TODO multiselect für editBook und newBook für AUTHOR Entity
 //TODO showSingleBook und allBooks muss im template: book.author.fullname werden
 //TODO SQL queries in repositories müssen getestet werden/funken bestimmt nicht
+    //bedenke: author ist jetzt manytomany
 //TODO in BookService muss evtl getAuthor() geändert werden
 @Controller
 public class BookController {
@@ -145,7 +146,7 @@ public class BookController {
             attr.addFlashAttribute("message", message);
             return "redirect:/book/new";
         }
-       /* if(bookService.titleAndAuthorValid(book) == false){
+       /* if(bookService.titleValid(book) == false){
             //TODO redirect & INFO sodass erst nach 'yes' erstellt wird
         }*/
         Book createdBook = bookService.create(book);
@@ -173,7 +174,7 @@ public class BookController {
         } else{
             message.setError("Please correct the field values.");
         }
-        //TODO title and author valid
+        //TODO title valid
         model.addAttribute("allCategories", allCategories);
         model.addAttribute("message", message);
         return BOOK_EDIT_FORM_VIEW;
@@ -195,7 +196,7 @@ public class BookController {
                              BindingResult result, Model model, RedirectAttributes attr){
         Message message = new Message();
         //TODO if bedingung
-        if (result.hasErrors() /*|| bookService.titleAndAuthorValid(bookDetails) == false*/) {
+        if (result.hasErrors() /*|| bookService.titleValid(bookDetails) == false*/) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.book", result);
             attr.addFlashAttribute("book", bookDetails);
             message.setError("Please correct the field errors.");

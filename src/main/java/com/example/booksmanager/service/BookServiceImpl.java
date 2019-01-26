@@ -72,7 +72,7 @@ public class BookServiceImpl implements BookService {
     public void update(Long id, Book book){
         Book currentBook = findById(id);
         currentBook.setTitle(book.getTitle());
-        currentBook.setAuthor(book.getAuthor());
+        currentBook.setAuthors(book.getAuthors());
         currentBook.setCategories(book.getCategories());
         currentBook.setDescription(book.getDescription());
         currentBook.setYear(book.getYear());
@@ -128,14 +128,14 @@ public class BookServiceImpl implements BookService {
     }
 
     /**
-     * tests whether there is an book with te same title and author in the database
+     * tests whether there is an book with te same title in the database
      * @param book
-     * @return true if there is no book with the same author and title in the database
+     * @return true if there is no book with the same title in the database
      */
     @Override
-    public boolean titleAndAuthorValid(Book book) {
+    public boolean titleValid(Book book) {
         Set<Long> bookSet = new HashSet<>();
-        bookRepository.findByTitleAndAuthor(book.getTitle(),book.getAuthor().getFullName())
+        bookRepository.findByTitle(book.getTitle())
                 .iterator().forEachRemaining(bookSet::add);
         if (!bookSet.isEmpty()) {
             return false;

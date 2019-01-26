@@ -71,5 +71,5 @@ public interface BookService {
      * @param book
      * @return true if there is no book with the same author and title in the database
      */
-    boolean titleAndAuthorValid(Book book);
+    boolean titleValid(Book book);
 }

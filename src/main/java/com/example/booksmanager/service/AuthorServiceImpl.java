@@ -70,6 +70,7 @@ public class AuthorServiceImpl implements AuthorService{
         currentAuthor.setFirstName(author.getFirstName());
         currentAuthor.setLastName(author.getLastName());
         currentAuthor.setFullName();
+        currentAuthor.setBio(author.getBio());
         currentAuthor.setUpdatedAt(new Date());
         authorRepository.save(currentAuthor);
     }

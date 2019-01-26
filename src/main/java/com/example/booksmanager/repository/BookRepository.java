@@ -14,25 +14,15 @@ public interface BookRepository extends PagingAndSortingRepository<Book, Long> {
     /**
      * @return newest bookId
      */
-    @Query(value = "SELECT MAX(book_id) FROM Book")
+    @Query(value = "SELECT MAX(id) FROM Book")
     Long findTopByOrderByIdDesc();
 
     /**
      * @param title     title of a book
-     * @param author    author of a book
-     * @return          List of articles with the same title and author
-     */
-    //@Query("SELECT a FROM Book a WHERE a.title=:title and a.author=:author")
-    //Set<Book> findByTitleAndAuthor(@Param("title") String title, @Param("author") String author);
-
-    @Query("SELECT a.book_id FROM Book a " +
-            "INNER JOIN author_books b " +
-            "            ON a.book_id = b.book_id " +
-            "        INNER JOIN Author c " +
-            "            ON b.author_id = c.author_id " +
-            "WHERE a.title=:title and c.author=:author")
-    Set<Long> findByTitleAndAuthor(@Param("title") String title, @Param("author") String author);
-    //TODO lol das wird nicht funken
+     * @return          List of articles with the same title
+     * */
+    @Query("SELECT a FROM Book a WHERE a.title=:title")
+    Set<Long> findByTitle(@Param("title") String title);
 
     /**
      * @param           pageable

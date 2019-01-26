@@ -1,6 +1,8 @@
 package com.example.booksmanager.domain;
 
 import com.example.booksmanager.dateAudit.DateAudit;
+import org.hibernate.annotations.Type;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import java.util.Date;
@@ -24,10 +26,13 @@ public class Author extends DateAudit {
     @NotEmpty
     private String fullName;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "author_books",
-            joinColumns = { @JoinColumn(name = "author_id") },
-            inverseJoinColumns = { @JoinColumn(name = "book_id") })
+    @Lob
+    @NotEmpty
+    @Type(type = "org.hibernate.type.TextType") //heroku config
+    private String bio;
+
+    //TODO notempty?
+    @ManyToMany(mappedBy = "authors")
     private Set<Book> books = new HashSet<>();
 
     public Author() {
@@ -67,5 +72,21 @@ public class Author extends DateAudit {
 
     public String getFullName(){
         return this.firstName + ' ' + this.lastName;
+    }
+
+    public Set<Book> getBooks() {
+        return books;
+    }
+
+    public void setBooks(Set<Book> books) {
+        this.books = books;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 }
