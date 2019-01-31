@@ -21,12 +21,14 @@
                     <div class="row">
                         <div class="col-lg-8 col-md-12 col-sx-12">
                             <h6>Author Name:</h6>
-                            <p th:text="${author.fullname}" id="name"></p>
+                            <p th:text="${author.fullName}" id="name"></p>
+                            <h6>Biography:</h6>
+                            <p th:text="${author.bio}" id="bio"></p>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col">
-                            <a class="btn btn-dark" th:href="@{/category/{id}/edit(id=${author.id})}">Edit</a>
+                            <a class="btn btn-dark" th:href="@{/author/{id}/edit(id=${author.id})}">Edit</a>
                         </div>
                     </div>
                     <div class="row">&nbsp;</div>

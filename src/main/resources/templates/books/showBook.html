@@ -24,8 +24,10 @@
                 </div>
 
                 <div class="col-lg-8 col-md-12 col-sx-12">
-                    <h6>Author:</h6>
-                    <p th:text="${book.author}"></p>
+                    <h6>Authors:</h6>
+                    <span th:each = "author : ${book.authors}">
+                        <p th:text="${author.fullName} + ' '"></p>
+                    </span>
                 </div>
 
                 <div class="col-lg-8 col-md-12 col-sx-12">

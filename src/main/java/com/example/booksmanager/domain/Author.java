@@ -23,7 +23,6 @@ public class Author extends DateAudit {
     @NotEmpty
     private String lastName;
 
-    @NotEmpty
     private String fullName;
 
     @Lob
@@ -31,7 +30,6 @@ public class Author extends DateAudit {
     @Type(type = "org.hibernate.type.TextType") //heroku config
     private String bio;
 
-    //TODO notempty?
     @ManyToMany(mappedBy = "authors")
     private Set<Book> books = new HashSet<>();
 

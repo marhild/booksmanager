@@ -1,7 +1,9 @@
 package com.example.booksmanager.controller;
 
 import com.example.booksmanager.domain.Author;
+import com.example.booksmanager.domain.Book;
 import com.example.booksmanager.service.AuthorService;
+import com.example.booksmanager.service.BookService;
 import com.example.booksmanager.support.Message;
 import com.example.booksmanager.support.PagerModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +40,8 @@ public class AuthorController {
 
     @Autowired
     private AuthorService authorService;
+    @Autowired
+    private BookService bookService;
 
     /**
      * GET author by id
@@ -47,11 +51,34 @@ public class AuthorController {
      * @return          view template for single author
      */
     @RequestMapping( path = "/author/{id}")
-    public String showSingleAuthor(@PathVariable("id") long id, Model model) {
+    public String showSingleAuthor(@PathVariable("id") long id, Model model,
+                                   @RequestParam("pageSize") Optional<Integer> pageSize,
+                                   @RequestParam("page") Optional<Integer> page) {
+
+        //nested table: books written by author
+        // If pageSize == null, return initial page size
+        int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
+        /*
+            If page == null || page < 0 (to prevent exception), return initial size
+            Else, return value of param. decreased by 1
+        */
+        int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() - 1;
+
+        Page<Book> booksList = bookService.findAll(PageRequest.of(evalPage, evalPageSize));
+        PagerModel pager = new PagerModel(booksList.getTotalPages(),booksList.getNumber(),BUTTONS_TO_SHOW);
+
         if(!model.containsAttribute("message")){
             Message message = new Message();
             model.addAttribute("message", message);
+            if(booksList.isEmpty()){
+                message.setInfo("There are no books written by this author.");
+            }
         }
+
+        model.addAttribute("selectedPageSize", evalPageSize);
+        model.addAttribute("booksList",booksList);
+        model.addAttribute("pageSizes", PAGE_SIZES);
+        model.addAttribute("pager", pager);
         model.addAttribute("author", authorService.findById(id));
         return AUTHOR_VIEW;
     }
@@ -115,7 +142,7 @@ public class AuthorController {
      *          (1)field values for errors
      *          (2)whether database already contains an author with the same name as field values
      * After the redirect: flash attributes pass attributes to the model
-     * @param author          entity
+     * @param author        entity
      * @param result        result of validation of field values from AUTHOR_ADD_FORM_VIEW
      * @param model         attributeValues
      * @param attr          stores flash attributes; used when method returns a redirect view name
@@ -165,7 +192,6 @@ public class AuthorController {
         model.addAttribute("message", message);
         return AUTHOR_EDIT_FORM_VIEW;
     }
-    //TODO delete book from showAuthor template
 
     /**
      * UPDATE author with field values from AUTHOR_EDIT_FORM_VIEW

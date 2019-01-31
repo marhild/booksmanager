@@ -1,8 +1,10 @@
 package com.example.booksmanager.controller;
 
 
+import com.example.booksmanager.domain.Author;
 import com.example.booksmanager.domain.Book;
 import com.example.booksmanager.domain.Category;
+import com.example.booksmanager.service.AuthorService;
 import com.example.booksmanager.service.BookService;
 import com.example.booksmanager.service.CategoryService;
 import com.example.booksmanager.support.Message;
@@ -24,11 +26,8 @@ import java.util.Set;
 /**
  * @author platoiscoding.com
  */
-//TODO multiselect für editBook und newBook für AUTHOR Entity
-//TODO showSingleBook und allBooks muss im template: book.author.fullname werden
+//TODO multiselect author für editBook
 //TODO SQL queries in repositories müssen getestet werden/funken bestimmt nicht
-    //bedenke: author ist jetzt manytomany
-//TODO in BookService muss evtl getAuthor() geändert werden
 @Controller
 public class BookController {
 
@@ -48,6 +47,8 @@ public class BookController {
     private BookService bookService;
     @Autowired
     private CategoryService categoryService;
+    @Autowired
+    private AuthorService authorService;
 
     /**
      * GET book by id
@@ -118,6 +119,10 @@ public class BookController {
         }
         Set<Category> allCategories = categoryService.getCategories();
         model.addAttribute("allCategories", allCategories);
+
+        Set<Author> allAuthors = authorService.getAuthors();
+        model.addAttribute("allAuthors", allAuthors);
+
         model.addAttribute("message", message);
 
         return BOOK_ADD_FORM_VIEW;
@@ -168,14 +173,16 @@ public class BookController {
         Message message = new Message();
         Book book = bookService.findById(id);
         Set<Category> allCategories = categoryService.getCategories();
+        Set<Author> allAuthors = authorService.getAuthors();
 
         if (!model.containsAttribute("book")) {
             model.addAttribute("book", book);
         } else{
-            message.setError("Please correct the field values.");
+            message.setError("Please correct the field errors.");
         }
         //TODO title valid
         model.addAttribute("allCategories", allCategories);
+        model.addAttribute("allAuthors", allAuthors);
         model.addAttribute("message", message);
         return BOOK_EDIT_FORM_VIEW;
     }

@@ -54,6 +54,7 @@ public class AuthorServiceImpl implements AuthorService{
      */
     @Override
     public Author create(Author author) {
+        //TODO structure to enforce this function??
         author.setFullName();
         authorRepository.save(author);
         return getLatestEntry();
