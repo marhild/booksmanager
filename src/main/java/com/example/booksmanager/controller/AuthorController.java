@@ -24,6 +24,7 @@ import java.util.Optional;
  */
 @Controller
 //TODO pfad für + new book durch author?
+//TODO bei field errors wird unter den einhabefeldern keine rote meldung ausgegeben -> entweder in entity fixen oder in template
 public class AuthorController {
 
     //view templates

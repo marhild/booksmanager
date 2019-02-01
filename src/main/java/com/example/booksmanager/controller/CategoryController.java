@@ -16,12 +16,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author platoiscoding.com
@@ -57,15 +56,11 @@ public class CategoryController {
     @GetMapping("/category/{id}")
     public ModelAndView showSingleCategory(@PathVariable("id") long id, Model model,
                                      @RequestParam("pageSize") Optional<Integer> pageSize,
-                                     @RequestParam("page") Optional<Integer> page) {
+                                     @RequestParam("page") Optional<Integer> page, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView(CATEGORY_VIEW);
         Category category = categoryService.findById(id);
         Set<Book> books = categoryService.getBooksInCategory(category);
-        Message message = new Message();
-        //redirect
-        if(!model.containsAttribute("message")){
-            model.addAttribute("message", message);
-        }
+
         // If pageSize == null, return initial page size
         int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
         /*
@@ -73,22 +68,36 @@ public class CategoryController {
             Else, return value of param. decreased by 1
         */
         int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() - 1;
-        /*
-            convert Set<Book> to Page<Book> with PageImpl(List<T> content, Pageable pageable, long total)
-         */
-        List<Book> booksConverted = new ArrayList<>();          //convert Set into List
+
+        //convert Set<Book> to Page<Book>
+        List<Book> booksConverted = new ArrayList<>();
         booksConverted.addAll(books);
         Page<Book> booksList = new PageImpl<Book>(booksConverted, PageRequest.of(evalPage, evalPageSize), books.size());
-        if(booksList.isEmpty()){
-            message.setInfo("There are no books in this category.");
-        }
+
         PagerModel pager = new PagerModel(booksList.getTotalPages(),booksList.getNumber(),BUTTONS_TO_SHOW);
+
+        //TODO die message behandlung hier sieht grauenhaft aus: restructure!
+        //redirect
+        if(!model.containsAttribute("message")){
+            Message message = new Message();
+            if(booksList.isEmpty()){
+                message.setInfo("There are no books in this category.");
+            }
+            model.addAttribute("message", message);
+        }
+        //TODO selbes Problem muss wahrsch. in nested list von showAuthor gelöst werden
+        if(booksList.isEmpty()){
+            Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
+            if (inputFlashMap != null) {
+                Message message = (Message) inputFlashMap.get("message");
+                message.setInfo("There are no books in this category.");
+            }
+        }
 
         modelAndView.addObject("booksList",booksList);
         modelAndView.addObject("selectedPageSize", evalPageSize);
         modelAndView.addObject("pageSizes", PAGE_SIZES);
         modelAndView.addObject("pager", pager);
-        modelAndView.addObject("message", message);
         model.addAttribute("category", category);
 
         return modelAndView;
@@ -136,15 +145,11 @@ public class CategoryController {
      */
     @RequestMapping(path = "/category/new")
     public String newCategoryForm(Model model) {
-
-        Message message = new Message();
-        if (!model.containsAttribute("category")) {
+        if (!model.containsAttribute("category") || !model.containsAttribute("message")) {
+            Message message = new Message();
             model.addAttribute("category", new Category());
+            model.addAttribute("message", message);
         }
-        else{
-            message.setError("Please correct the field errors.");
-        }
-        model.addAttribute("message", message);
         return CATEGORY_ADD_FORM_VIEW;
     }
 
@@ -164,24 +169,17 @@ public class CategoryController {
     public String createCategory(@Valid Category category, BindingResult result,
                                  Model model, RedirectAttributes attr) {
         Message message = new Message();
-        if (result.hasErrors()) {
+
+        if (result.hasErrors() || !categoryService.nameIsValid(category)) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.category", result);
             attr.addFlashAttribute("category", category);
-            message.setError("Please correct the field errors.");
-            attr.addFlashAttribute("message", message);
-            return "redirect:/category/new";
-        }
-        if(!categoryService.nameIsValid(category)){
-            attr.addFlashAttribute("org.springframework.validation.BindingResult.category", result);
-            attr.addFlashAttribute("category", category);
-            message.setInfo("This category already exists.");
+            message.setError("Category Name may not be empty or a duplicate.");
             attr.addFlashAttribute("message", message);
             return "redirect:/category/new";
         }
         Category createdCategory = categoryService.create(category);
         model.addAttribute("category", createdCategory);
         message.setSuccess("New Category added.");
-        //TODO Success Message taucht nicht auf - nur info darüber, dass es keine Bücher in der datenbank gibt
         attr.addFlashAttribute("message", message);
 
         return "redirect:/category/" + createdCategory.getId();
@@ -189,22 +187,19 @@ public class CategoryController {
 
     /**
      * FORM for EDIT category
-     * In case of redirect model will contain "category"
+     * In case of redirect model will contain "category" and "message"
      * @param id        category_id
      * @param model     attributeValues
      * @return          CATEGORY_EDIT_FORM_VIEW
      */
     @GetMapping("/category/{id}/edit")
     public String editCategoryForm(@PathVariable("id") long id, Model model){
-        Message message = new Message();
-        Category category = categoryService.findById(id);
-
-        if(!model.containsAttribute("category")){
+        if(!model.containsAttribute("category") || !model.containsAttribute("message") ){
+            Category category = categoryService.findById(id);
+            Message message = new Message();
             model.addAttribute("category", category);
-        } else{
-            message.setError("Please correct the field values.");
+            model.addAttribute("message", message);
         }
-        model.addAttribute("message", message);
         return CATEGORY_EDIT_FORM_VIEW;
     }
 
@@ -223,14 +218,14 @@ public class CategoryController {
     public String updateCategory(@PathVariable("id") long id, @Valid Category categoryDetails,
                                  BindingResult result, Model model, RedirectAttributes attr) {
         Message message = new Message();
-        if (result.hasErrors()) {
+        //TODO neue function nameIsVAlid wobei id übergeben wird um den aktuellen namen zu pberspringen, sonst beschwert er sich beim speichern ohne änderungen, dass der name schon in der db existiert
+        if (result.hasErrors() || !categoryService.nameIsValid(categoryDetails)) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.category", result);
             attr.addFlashAttribute("category", categoryDetails);
-            message.setError("Please correct the field errors.");
+            message.setError("Category Name may not be empty or a duplicate.");
             attr.addFlashAttribute("message", message);
             return "redirect:/category/" + categoryDetails.getId() + "/edit";
         }
-        /*if(categoryValid)*/ //TODO categoryName validieren, dann redirect wenn fail
         categoryService.update(id, categoryDetails);
         message.setSuccess("Category has been updated.");
         attr.addFlashAttribute("message", message);

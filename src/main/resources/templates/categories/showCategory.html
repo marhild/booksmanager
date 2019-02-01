@@ -49,8 +49,12 @@
                                     </thead>
                                     <tbody>
                                     <tr th:each = "book : ${booksList}">
-                                        <td th:text="${book.title}">Thinking Fast And Slow</td>
-                                        <td th:text="${book.author}">Dalien Kahneman</td>
+                                        <td th:text="${book.title}"></td>
+                                        <td>
+                                            <th:block th:each="author : ${book.authors}">
+                                                <a th:href="@{/author/{id}(id=${author.id})}"><span th:text="${author.fullName} + ' '"></span></a>
+                                            </th:block>
+                                        </td>
                                         <td th:text="${book.year}"></td>
                                         <td><a th:href="@{/book/{id}(id=${book.id})}"><i class="fab fa-readme"></i></a></td>
                                         <td><a th:href="@{/book/{id}/edit(id=${book.id})}"><i class="far fa-edit"></i></a></td>
