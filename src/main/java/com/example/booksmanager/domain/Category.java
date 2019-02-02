@@ -16,7 +16,6 @@ public class Category extends DateAudit {
     Long id;
 
     @NotEmpty
-    //TODO connstraint for unique?
     private String name;
 
     @ManyToMany(mappedBy = "categories")

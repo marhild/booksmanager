@@ -110,17 +110,14 @@ public class AuthorServiceImpl implements AuthorService{
     }
 
     /**
-     * for simplicity we ignore the possibility of multiple authors with the same name
-     *
-     * tests whether there is already an author with te same name in the database
      * @param author
-     * @return true if there is no book with the same author and title in the database
+     * @return false if there exists an author with same name in the database
      */
     @Override
     public boolean newAuthorValid(Author author) {
         Set<Author> authorSet = new HashSet<>();
         authorRepository.findByAuthorFullName(author.getFullName())
-                .iterator().forEachRemaining(authorSet::add);
+                        .iterator().forEachRemaining(authorSet::add);
         if(!authorSet.isEmpty()){
             return false;
         }else{

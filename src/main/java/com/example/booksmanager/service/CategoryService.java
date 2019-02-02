@@ -13,8 +13,6 @@ public interface CategoryService {
 
     Set<Category> getCategories();
 
-    Set<Book> getBooksInCategory(Category category);
-
     Category findById(Long id);
 
     void delete(Long id);

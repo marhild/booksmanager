@@ -30,12 +30,6 @@ public class CategoryServiceImpl implements CategoryService{
     }
 
     @Override
-    public Set<Book> getBooksInCategory(Category category){
-        Set<Book> booksInCategory = category.getBooks();
-        return booksInCategory;
-    }
-
-    @Override
     public Category findById(Long id){
         Optional<Category> categoryOptional = categoryRepository.findById(id);
 

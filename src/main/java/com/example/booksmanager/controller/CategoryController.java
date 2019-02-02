@@ -25,6 +25,7 @@ import java.util.*;
 /**
  * @author platoiscoding.com
  */
+//TODO wie in author Controller messages static machen
 @Controller
 public class CategoryController {
 
@@ -40,8 +41,6 @@ public class CategoryController {
     private static final int INITIAL_PAGE_SIZE = 5;
     private static final int[] PAGE_SIZES = { 5, 10};
 
-    @Autowired
-    private BookService bookService;
     @Autowired
     private CategoryService categoryService;
 
@@ -59,14 +58,10 @@ public class CategoryController {
                                      @RequestParam("page") Optional<Integer> page, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView(CATEGORY_VIEW);
         Category category = categoryService.findById(id);
-        Set<Book> books = categoryService.getBooksInCategory(category);
+        Set<Book> books = category.getBooks();
 
         // If pageSize == null, return initial page size
         int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
-        /*
-            If page == null || page < 0 (to prevent exception), return initial size
-            Else, return value of param. decreased by 1
-        */
         int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() - 1;
 
         //convert Set<Book> to Page<Book>
@@ -77,7 +72,7 @@ public class CategoryController {
         PagerModel pager = new PagerModel(booksList.getTotalPages(),booksList.getNumber(),BUTTONS_TO_SHOW);
 
         //TODO die message behandlung hier sieht grauenhaft aus: restructure!
-        //redirect
+        //siehe authorcontroller zeile 80
         if(!model.containsAttribute("message")){
             Message message = new Message();
             if(booksList.isEmpty()){
@@ -85,7 +80,6 @@ public class CategoryController {
             }
             model.addAttribute("message", message);
         }
-        //TODO selbes Problem muss wahrsch. in nested list von showAuthor gelöst werden
         if(booksList.isEmpty()){
             Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
             if (inputFlashMap != null) {
@@ -114,12 +108,9 @@ public class CategoryController {
                                                   @RequestParam("page") Optional<Integer> page) {
         ModelAndView modelAndView = new ModelAndView(CATEGORY_LIST_VIEW);
         Message message = new Message();
+
         // If pageSize == null, return initial page size
         int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
-        /*
-            If page == null || page < 0 (to prevent exception), return initial size
-            Else, return value of param. decreased by 1
-        */
         int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() - 1;
 
         Page<Category> catList = categoryService.findAll(PageRequest.of(evalPage, evalPageSize));
@@ -245,6 +236,5 @@ public class CategoryController {
         message.setSuccess("Category has been deleted.");
         model.addAttribute("message", message);
         return "redirect:/categories";
-        //TODO diese categories muss dann aus allen betroffenen Büchern gelöscht werden
     }
 }

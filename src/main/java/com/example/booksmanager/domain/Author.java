@@ -38,8 +38,6 @@ public class Author extends DateAudit {
         setUpdatedAt(new Date());
     }
 
-    //TODO add constructor &  getter/setter for books
-
     public Long getId() {
         return id;
     }

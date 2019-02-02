@@ -8,6 +8,7 @@ import com.example.booksmanager.support.Message;
 import com.example.booksmanager.support.PagerModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,16 +16,17 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author platoiscoding.com
  */
 @Controller
 //TODO pfad für + new book durch author?
-//TODO bei field errors wird unter den einhabefeldern keine rote meldung ausgegeben -> entweder in entity fixen oder in template
 public class AuthorController {
 
     //view templates
@@ -39,14 +41,21 @@ public class AuthorController {
     private static final int INITIAL_PAGE_SIZE = 5;
     private static final int[] PAGE_SIZES = { 5, 10};
 
+    //messages
+    protected static final String NEW_AUTHOR_SUCCESS = "New Author has been added.";
+    protected static final String AUTHOR_UPDATED_SUCCESS = "Author has been updated.";
+    protected static final String AUTHOR_DELETED_SUCCESS = "Author has been deleted.";
+    protected static final String NO_BOOKS_BY_THIS_AUTHOR_INFO = "There are no book written by this Author.";
+    protected static final String FIELD_VALIDATION_ERROR = "Plaese correct the field errors.";
+    protected static final String NO_DUPLICATES_ALLOWED_ERROR = "An Author with the same Name already exists in the database.";
+
     @Autowired
     private AuthorService authorService;
-    @Autowired
-    private BookService bookService;
 
     /**
      * GET author by id
      * After redirect from author/create: model contains attribute "message"(success)
+     * nested table: books written by author
      * @param id        author_id
      * @param model     attributeValues
      * @return          view template for single author
@@ -54,26 +63,28 @@ public class AuthorController {
     @RequestMapping( path = "/author/{id}")
     public String showSingleAuthor(@PathVariable("id") long id, Model model,
                                    @RequestParam("pageSize") Optional<Integer> pageSize,
-                                   @RequestParam("page") Optional<Integer> page) {
+                                   @RequestParam("page") Optional<Integer> page, HttpServletRequest request) {
+        Author author = authorService.findById(id);
+        Set<Book> booksByAuthor = author.getBooks();
+        List<Book> booksConverted = new ArrayList<>();
+        booksConverted.addAll(booksByAuthor);
 
-        //nested table: books written by author
         // If pageSize == null, return initial page size
         int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
-        /*
-            If page == null || page < 0 (to prevent exception), return initial size
-            Else, return value of param. decreased by 1
-        */
         int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() - 1;
 
-        Page<Book> booksList = bookService.findAll(PageRequest.of(evalPage, evalPageSize));
+        //convert Set<Book> to Page<Book>
+        Page<Book> booksList = new PageImpl<Book>(booksConverted, PageRequest.of(evalPage, evalPageSize), booksByAuthor.size());
         PagerModel pager = new PagerModel(booksList.getTotalPages(),booksList.getNumber(),BUTTONS_TO_SHOW);
 
-        if(!model.containsAttribute("message")){
+        Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
+        if(/* if redirected*/ inputFlashMap != null){
+            Message message = (Message) inputFlashMap.get("message");
+            if(booksByAuthor.isEmpty()) message.setInfo(NO_BOOKS_BY_THIS_AUTHOR_INFO);
+        }else{
             Message message = new Message();
+            if(booksByAuthor.isEmpty()) message.setInfo(NO_BOOKS_BY_THIS_AUTHOR_INFO);
             model.addAttribute("message", message);
-            if(booksList.isEmpty()){
-                message.setInfo("There are no books written by this author.");
-            }
         }
 
         model.addAttribute("selectedPageSize", evalPageSize);
@@ -86,28 +97,34 @@ public class AuthorController {
 
     /**
      * GET all authors from database
+     * With Pagination
      * @param pageSize      number of authors per page
      * @param page          subset of all authors
      * @return              list view of authors
      */
     @RequestMapping({"/authors"})
-    public ModelAndView showAllAuthorsWithPagination(@RequestParam("pageSize") Optional<Integer> pageSize,
-                                                   @RequestParam("page") Optional<Integer> page) {
+    public ModelAndView showAllAuthors(@RequestParam("pageSize") Optional<Integer> pageSize,
+                                       @RequestParam("page") Optional<Integer> page,
+                                       HttpServletRequest request) {
 
         ModelAndView modelAndView = new ModelAndView(AUTHOR_LIST_VIEW);
         Message message = new Message();
+
         // If pageSize == null, return initial page size
         int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
-        /*
-            If page == null || page < 0 (to prevent exception), return initial size
-            Else, return value of param. decreased by 1
-        */
         int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() - 1;
 
+        //TODO wenn autor gelöscht wird muss success message hier auftauchen
         Page<Author> authorsList = authorService.findAll(PageRequest.of(evalPage, evalPageSize));
+
         if(authorsList.isEmpty()){
-            message.setInfo("There are no authors in the database.");
+            message.setInfo(NO_BOOKS_BY_THIS_AUTHOR_INFO);
         }
+        /*retrieve message from FlashAttribute
+        Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
+        if (inputFlashMap != null) { Message message = (Message) inputFlashMap.get("message"); }
+        *///muss umgeschrieben werden damit es funktioniert
+
         PagerModel pager = new PagerModel(authorsList.getTotalPages(),authorsList.getNumber(),BUTTONS_TO_SHOW);
 
         modelAndView.addObject("authorsList",authorsList);
@@ -121,19 +138,20 @@ public class AuthorController {
 
     /**
      * FORM for NEW Author
-     * in case of redirection model will contain author
+     * if redirected from createAuthor: model contains FlashAttributes "author" and "message"
      * @param model     attributesValues
      * @return          AUTHOR_ADD_FORM_VIEW
      */
     @RequestMapping(path = "/author/new")
-    public String newAuthorForm(Model model) {
-        Message message = new Message();
+    public String newAuthorForm(Model model, HttpServletRequest request) {
         if (!model.containsAttribute("author")) {
             model.addAttribute("author", new Author());
-        }else{
-            message.setError("Please correct the field errors.");
+            Message message = new Message();
+            model.addAttribute("message", message);
         }
-        model.addAttribute("message", message);
+        //retrieve message from FlashAttribute
+        Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
+        if (inputFlashMap != null) { Message message = (Message) inputFlashMap.get("message"); }
 
         return AUTHOR_ADD_FORM_VIEW;
     }
@@ -158,15 +176,16 @@ public class AuthorController {
         if (result.hasErrors()) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.author", result);
             attr.addFlashAttribute("author", author);
-            message.setError("Please correct the field errors.");
+            if(authorService.newAuthorValid(author) == false){
+                message.setError(NO_DUPLICATES_ALLOWED_ERROR);
+            }else{
+                message.setError(FIELD_VALIDATION_ERROR);
+            }
             attr.addFlashAttribute("message", message);
             return "redirect:/author/new";
         }
-        /*if(authorService.newAuthorValid(author) == false){
-            //TODO redirect & INFO sodass erst nach 'yes' erstellt wird
-        }*/
         Author createdAuthor = authorService.create(author);
-        message.setSuccess("New Author Added.");
+        message.setSuccess(NEW_AUTHOR_SUCCESS);
         attr.addFlashAttribute("message", message);
 
         return "redirect:/author/" + createdAuthor.getId();
@@ -187,7 +206,7 @@ public class AuthorController {
         if (!model.containsAttribute("author")) {
             model.addAttribute("author", author);
         } else{
-            message.setError("Please correct the field values.");
+            message.setError(FIELD_VALIDATION_ERROR);
         }
         //TODO author valid
         model.addAttribute("message", message);
@@ -210,16 +229,21 @@ public class AuthorController {
                              BindingResult result, Model model, RedirectAttributes attr){
 
         Message message = new Message();
-        //TODO if bedingung
-        if (result.hasErrors() /*|| authorService.authorvalid(authorDetails) == false*/) {
+
+        if (result.hasErrors()) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.author", result);
             attr.addFlashAttribute("author", authorDetails);
-            message.setError("Please correct the field errors.");
+            if(authorService.newAuthorValid(authorDetails) == false){
+                message.setError(NO_DUPLICATES_ALLOWED_ERROR);
+            }else{
+                message.setError(FIELD_VALIDATION_ERROR);
+            }
             attr.addFlashAttribute("message", message);
             return "redirect:/author/" + authorDetails.getId() + "/edit";
         }
+
         authorService.update(id, authorDetails);
-        message.setSuccess("Author has been updated.");
+        message.setSuccess(AUTHOR_UPDATED_SUCCESS);
         attr.addFlashAttribute("message", message);
         return "redirect:/author/" + id;
     }
@@ -231,13 +255,14 @@ public class AuthorController {
      * @return              redirect: '/authors'
      */
     @RequestMapping(path = "/author/{id}/delete", method = RequestMethod.GET)
-    public String deleteAuthor(@PathVariable("id") long id, Model model) {
+    public String deleteAuthor(@PathVariable("id") long id, Model model, RedirectAttributes attr) {
         Message message = new Message();
         authorService.delete(id);
-        message.setSuccess("Author has been deleted.");
-        model.addAttribute("message", message);
+        message.setSuccess(AUTHOR_DELETED_SUCCESS);
+        attr.addFlashAttribute("message", message);
         return "redirect:/authors";
-        //TODO dieser Autor muss aus allen betroffenen categorien gelöscht werden
+        //TODO werden dann auch alle betroffenen Bücher gelöscht? NEIN! beheben!! PopUp bei Löschversuch!!
+        //bei removeBookFromCategory functs: abgucken
     }
 }
 

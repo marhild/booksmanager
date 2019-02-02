@@ -26,7 +26,6 @@ import java.util.Set;
 /**
  * @author platoiscoding.com
  */
-//TODO multiselect author für editBook
 //TODO SQL queries in repositories müssen getestet werden/funken bestimmt nicht
 @Controller
 public class BookController {
@@ -79,12 +78,9 @@ public class BookController {
                                                    @RequestParam("page") Optional<Integer> page) {
         ModelAndView modelAndView = new ModelAndView(BOOK_LIST_VIEW);
         Message message = new Message();
+
         // If pageSize == null, return initial page size
         int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
-        /*
-            If page == null || page < 0 (to prevent exception), return initial size
-            Else, return value of param. decreased by 1
-        */
         int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() - 1;
 
         Page<Book> booksList = bookService.findAll(PageRequest.of(evalPage, evalPageSize));
@@ -229,11 +225,10 @@ public class BookController {
         message.setSuccess("Book has been deleted.");
         model.addAttribute("message", message);
         return "redirect:/books";
-        //TODO dieses buch muss aus allen betroffenen categorien gelöscht werden/ oder geschiet das automatisch?
     }
 
     /**
-     * DELETE book by id from database
+     * REMOVE a book from a category
      * @param bookId        book_id
      * @param catId         category_id
      * @param model         attributeValues
@@ -248,6 +243,5 @@ public class BookController {
         message.setSuccess(book.getTitle() +" has been deleted from " + category.getName() +".");
         model.addAttribute("message", message);
         return "redirect:/category/" + category.getId();
-        //TODO diese categories muss dann aus allen betroffenen Büchern gelöscht werden
     }
 }

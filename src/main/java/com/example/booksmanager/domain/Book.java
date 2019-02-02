@@ -20,7 +20,6 @@ public class Book extends DateAudit {
     @NotEmpty
     private String title;
 
-    //TODO notempty?
     @NotEmpty
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "book_authors",
