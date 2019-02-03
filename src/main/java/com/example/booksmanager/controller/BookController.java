@@ -27,6 +27,7 @@ import java.util.Set;
  * @author platoiscoding.com
  */
 //TODO SQL queries in repositories müssen getestet werden/funken bestimmt nicht
+    //TODO bei newBook muss ein error auftauchen, wenn es keine Autoren oder Categories gibt, da sonst keine Bücher erstellt werden können
 @Controller
 public class BookController {
 

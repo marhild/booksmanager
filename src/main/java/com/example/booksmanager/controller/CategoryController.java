@@ -25,7 +25,8 @@ import java.util.*;
 /**
  * @author platoiscoding.com
  */
-//TODO wie in author Controller messages static machen
+// TODO entweder sind categories für bücher ein muss oder es gibt ein automatisches uncategorized das nicht gelöscht werden kann
+//TODO man soll hier Bücher einfügen können: nur Liste von Büchern anzeigen (Multiselect) oder besser kästchen?
 @Controller
 public class CategoryController {
 
@@ -40,6 +41,16 @@ public class CategoryController {
     private static final int INITIAL_PAGE = 0;
     private static final int INITIAL_PAGE_SIZE = 5;
     private static final int[] PAGE_SIZES = { 5, 10};
+
+    //messages
+    protected static final String NEW_CATEGORY_SUCCESS = "New Category has been added.";
+    protected static final String NO_CATEGORIES_IN_DB_INFO = "There are no Categories in the Database.";
+    protected static final String CATEGORY_UPDATED_SUCCESS = "Category has been updated.";
+    protected static final String CATEGORY_DELETED_SUCCESS = "Category has been deleted.";
+    protected static final String NO_BOOKS_IN_THIS_CATEGORY_INFO = "There are no books in this Category.";
+    protected static final String FIELD_VALIDATION_ERROR = "Please correct the field errors.";
+    protected static final String NO_DUPLICATES_ALLOWED_ERROR = "A Category with the same Name already exists in the database.";
+
 
     @Autowired
     private CategoryService categoryService;
@@ -67,28 +78,21 @@ public class CategoryController {
         //convert Set<Book> to Page<Book>
         List<Book> booksConverted = new ArrayList<>();
         booksConverted.addAll(books);
-        Page<Book> booksList = new PageImpl<Book>(booksConverted, PageRequest.of(evalPage, evalPageSize), books.size());
+        Page<Book> booksInCategory = new PageImpl<Book>(booksConverted, PageRequest.of(evalPage, evalPageSize), books.size());
 
-        PagerModel pager = new PagerModel(booksList.getTotalPages(),booksList.getNumber(),BUTTONS_TO_SHOW);
+        PagerModel pager = new PagerModel(booksInCategory.getTotalPages(),booksInCategory.getNumber(),BUTTONS_TO_SHOW);
 
-        //TODO die message behandlung hier sieht grauenhaft aus: restructure!
-        //siehe authorcontroller zeile 80
-        if(!model.containsAttribute("message")){
+        Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
+        if(/* if redirected*/ inputFlashMap != null){
+            Message message = (Message) inputFlashMap.get("message");
+            if(booksInCategory.isEmpty()) message.setInfo(NO_BOOKS_IN_THIS_CATEGORY_INFO);
+        }else{
             Message message = new Message();
-            if(booksList.isEmpty()){
-                message.setInfo("There are no books in this category.");
-            }
+            if(booksInCategory.isEmpty()) message.setInfo(NO_BOOKS_IN_THIS_CATEGORY_INFO);
             model.addAttribute("message", message);
         }
-        if(booksList.isEmpty()){
-            Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
-            if (inputFlashMap != null) {
-                Message message = (Message) inputFlashMap.get("message");
-                message.setInfo("There are no books in this category.");
-            }
-        }
 
-        modelAndView.addObject("booksList",booksList);
+        modelAndView.addObject("booksList",booksInCategory);
         modelAndView.addObject("selectedPageSize", evalPageSize);
         modelAndView.addObject("pageSizes", PAGE_SIZES);
         modelAndView.addObject("pager", pager);
@@ -115,7 +119,7 @@ public class CategoryController {
 
         Page<Category> catList = categoryService.findAll(PageRequest.of(evalPage, evalPageSize));
         if(catList.isEmpty()){
-            message.setInfo("There are no categories in the database.");
+            message.setInfo(NO_CATEGORIES_IN_DB_INFO);
         }
         PagerModel pager = new PagerModel(catList.getTotalPages(),catList.getNumber(),BUTTONS_TO_SHOW);
 
@@ -164,13 +168,17 @@ public class CategoryController {
         if (result.hasErrors() || !categoryService.nameIsValid(category)) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.category", result);
             attr.addFlashAttribute("category", category);
-            message.setError("Category Name may not be empty or a duplicate.");
+            if(!categoryService.nameIsValid(category)){
+                message.setError(NO_DUPLICATES_ALLOWED_ERROR);
+            }else{
+                message.setError(FIELD_VALIDATION_ERROR);
+            }
             attr.addFlashAttribute("message", message);
             return "redirect:/category/new";
         }
         Category createdCategory = categoryService.create(category);
         model.addAttribute("category", createdCategory);
-        message.setSuccess("New Category added.");
+        message.setSuccess(NEW_CATEGORY_SUCCESS);
         attr.addFlashAttribute("message", message);
 
         return "redirect:/category/" + createdCategory.getId();
@@ -213,12 +221,17 @@ public class CategoryController {
         if (result.hasErrors() || !categoryService.nameIsValid(categoryDetails)) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.category", result);
             attr.addFlashAttribute("category", categoryDetails);
-            message.setError("Category Name may not be empty or a duplicate.");
+
+            if(!categoryService.nameIsValid(categoryDetails)){
+                message.setError(NO_DUPLICATES_ALLOWED_ERROR);
+            }else{
+                message.setError(FIELD_VALIDATION_ERROR);
+            }
             attr.addFlashAttribute("message", message);
             return "redirect:/category/" + categoryDetails.getId() + "/edit";
         }
         categoryService.update(id, categoryDetails);
-        message.setSuccess("Category has been updated.");
+        message.setSuccess(CATEGORY_UPDATED_SUCCESS);
         attr.addFlashAttribute("message", message);
         return "redirect:/category/" + id;
     }
@@ -233,7 +246,7 @@ public class CategoryController {
     public String deleteCategory(@PathVariable("id") long id, Model model) {
         Message message = new Message();
         categoryService.delete(id);
-        message.setSuccess("Category has been deleted.");
+        message.setSuccess(CATEGORY_DELETED_SUCCESS);
         model.addAttribute("message", message);
         return "redirect:/categories";
     }

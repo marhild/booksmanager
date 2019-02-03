@@ -43,10 +43,11 @@ public class AuthorController {
 
     //messages
     protected static final String NEW_AUTHOR_SUCCESS = "New Author has been added.";
+    protected static final String NO_AUTHORS_IN_DB_INFO = "There are no Authors in the Database.";
     protected static final String AUTHOR_UPDATED_SUCCESS = "Author has been updated.";
     protected static final String AUTHOR_DELETED_SUCCESS = "Author has been deleted.";
-    protected static final String NO_BOOKS_BY_THIS_AUTHOR_INFO = "There are no book written by this Author.";
-    protected static final String FIELD_VALIDATION_ERROR = "Plaese correct the field errors.";
+    protected static final String NO_BOOKS_BY_THIS_AUTHOR_INFO = "There are no books written by this Author.";
+    protected static final String FIELD_VALIDATION_ERROR = "Please correct the field errors.";
     protected static final String NO_DUPLICATES_ALLOWED_ERROR = "An Author with the same Name already exists in the database.";
 
     @Autowired
@@ -97,6 +98,7 @@ public class AuthorController {
 
     /**
      * GET all authors from database
+     * If redirected from /delete, contains FlashAttribute "message"
      * With Pagination
      * @param pageSize      number of authors per page
      * @param page          subset of all authors
@@ -108,7 +110,6 @@ public class AuthorController {
                                        HttpServletRequest request) {
 
         ModelAndView modelAndView = new ModelAndView(AUTHOR_LIST_VIEW);
-        Message message = new Message();
 
         // If pageSize == null, return initial page size
         int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
@@ -117,13 +118,15 @@ public class AuthorController {
         //TODO wenn autor gelöscht wird muss success message hier auftauchen
         Page<Author> authorsList = authorService.findAll(PageRequest.of(evalPage, evalPageSize));
 
-        if(authorsList.isEmpty()){
-            message.setInfo(NO_BOOKS_BY_THIS_AUTHOR_INFO);
-        }
-        /*retrieve message from FlashAttribute
         Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
-        if (inputFlashMap != null) { Message message = (Message) inputFlashMap.get("message"); }
-        *///muss umgeschrieben werden damit es funktioniert
+        if(/* if redirected from delete*/ inputFlashMap != null){
+            Message message = (Message) inputFlashMap.get("message");
+            if(authorsList.isEmpty()) message.setInfo(NO_AUTHORS_IN_DB_INFO);
+        }else{
+            Message message = new Message();
+            if(authorsList.isEmpty()) message.setInfo(NO_AUTHORS_IN_DB_INFO);
+            modelAndView.addObject("message", message);
+        }
 
         PagerModel pager = new PagerModel(authorsList.getTotalPages(),authorsList.getNumber(),BUTTONS_TO_SHOW);
 
@@ -131,7 +134,6 @@ public class AuthorController {
         modelAndView.addObject("selectedPageSize", evalPageSize);
         modelAndView.addObject("pageSizes", PAGE_SIZES);
         modelAndView.addObject("pager", pager);
-        modelAndView.addObject("message", message);
 
         return modelAndView;
     }
