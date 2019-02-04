@@ -43,6 +43,15 @@ public class BookController {
     private static final int INITIAL_PAGE_SIZE = 5;
     private static final int[] PAGE_SIZES = { 5, 10};
 
+    //messages
+    protected static final String NEW_BOOK_SUCCESS = "New BOOK has been added.";
+    protected static final String NO_BOOKS_IN_DB_INFO = "There are no Books in the Database.";
+    protected static final String BOOK_UPDATED_SUCCESS = "Book has been updated.";
+    protected static final String BOOK_DELETED_SUCCESS = "Book has been deleted.";
+    protected static final String FIELD_VALIDATION_ERROR = "Please correct the field errors.";
+    protected static final String NO_DUPLICATES_ALLOWED_ERROR = "A Book with the same title already exists in the database.";
+
+
     @Autowired
     private BookService bookService;
     @Autowired
@@ -75,7 +84,7 @@ public class BookController {
      * @return              list view of books
      */
     @RequestMapping({"/books", "/"})
-    public ModelAndView showAllBooksWithPagination(@RequestParam("pageSize") Optional<Integer> pageSize,
+    public ModelAndView showAllBooks(@RequestParam("pageSize") Optional<Integer> pageSize,
                                                    @RequestParam("page") Optional<Integer> page) {
         ModelAndView modelAndView = new ModelAndView(BOOK_LIST_VIEW);
         Message message = new Message();
@@ -86,7 +95,7 @@ public class BookController {
 
         Page<Book> booksList = bookService.findAll(PageRequest.of(evalPage, evalPageSize));
         if(booksList.isEmpty()){
-            message.setInfo("There are no books in the database.");
+            message.setInfo(NO_BOOKS_IN_DB_INFO);
         }
         PagerModel pager = new PagerModel(booksList.getTotalPages(),booksList.getNumber(),BUTTONS_TO_SHOW);
 
@@ -112,14 +121,17 @@ public class BookController {
         if (!model.containsAttribute("book")) {
             model.addAttribute("book", new Book());
         }else{
-            message.setError("Please correct the field errors.");
+            /*redirected*/
+            message.setError(FIELD_VALIDATION_ERROR);
         }
         Set<Category> allCategories = categoryService.getCategories();
         model.addAttribute("allCategories", allCategories);
-
         Set<Author> allAuthors = authorService.getAuthors();
         model.addAttribute("allAuthors", allAuthors);
 
+        if(allCategories.isEmpty() || allAuthors.isEmpty()){
+            message.setInfo("First, create at least one Category and one Author to add a new Book.");
+        }
         model.addAttribute("message", message);
 
         return BOOK_ADD_FORM_VIEW;
@@ -144,7 +156,7 @@ public class BookController {
         if (result.hasErrors()) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.book", result);
             attr.addFlashAttribute("book", book);
-            message.setError("Please correct the field errors.");
+            message.setError(FIELD_VALIDATION_ERROR);
             attr.addFlashAttribute("message", message);
             return "redirect:/book/new";
         }
@@ -152,7 +164,7 @@ public class BookController {
             //TODO redirect & INFO sodass erst nach 'yes' erstellt wird
         }*/
         Book createdBook = bookService.create(book);
-        message.setSuccess("New Book Added.");
+        message.setSuccess(NEW_BOOK_SUCCESS);
         attr.addFlashAttribute("message", message);
 
         return "redirect:/book/" + createdBook.getId();
@@ -175,7 +187,7 @@ public class BookController {
         if (!model.containsAttribute("book")) {
             model.addAttribute("book", book);
         } else{
-            message.setError("Please correct the field errors.");
+            message.setError(FIELD_VALIDATION_ERROR);
         }
         //TODO title valid
         model.addAttribute("allCategories", allCategories);
@@ -203,12 +215,12 @@ public class BookController {
         if (result.hasErrors() /*|| bookService.titleValid(bookDetails) == false*/) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.book", result);
             attr.addFlashAttribute("book", bookDetails);
-            message.setError("Please correct the field errors.");
+            message.setError(FIELD_VALIDATION_ERROR);
             attr.addFlashAttribute("message", message);
             return "redirect:/book/" + bookDetails.getId() + "/edit";
         }
         bookService.update(id, bookDetails);
-        message.setSuccess("Book has been updated.");
+        message.setSuccess(BOOK_UPDATED_SUCCESS);
         attr.addFlashAttribute("message", message);
         return "redirect:/book/" + id;
     }
@@ -223,7 +235,8 @@ public class BookController {
     public String deleteBook(@PathVariable("id") long id, Model model) {
         Message message = new Message();
         bookService.delete(id);
-        message.setSuccess("Book has been deleted.");
+        //TODO flashmessage
+        message.setSuccess(BOOK_DELETED_SUCCESS);
         model.addAttribute("message", message);
         return "redirect:/books";
     }
@@ -236,10 +249,18 @@ public class BookController {
      * @return              redirect: '/categories'
      */
     @RequestMapping(path = "/book/{bookId}/removeFromCategory/{catId}", method = RequestMethod.GET)
-    public String removeBookFromCategory(@PathVariable("bookId") long bookId, @PathVariable("catId") long catId, Model model) {
+    public String removeBookFromCategory(@PathVariable("bookId") long bookId, @PathVariable("catId") long catId,
+                                         Model model, RedirectAttributes attr) {
         Message message = new Message();
         Book book = bookService.findById(bookId);
         Category category = categoryService.findById(catId);
+
+        if(book.getCategories().size() < 2){
+            message.setError("Couldn't remove Book. A Book must have at least one Category.");
+            attr.addFlashAttribute("message", message);
+            return "redirect:/category/" + category.getId();
+        }
+
         bookService.removeFromCategory(book, category);
         message.setSuccess(book.getTitle() +" has been deleted from " + category.getName() +".");
         model.addAttribute("message", message);

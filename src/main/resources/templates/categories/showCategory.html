@@ -59,7 +59,7 @@
                                         <td><a th:href="@{/book/{id}(id=${book.id})}"><i class="fab fa-readme"></i></a></td>
                                         <td><a th:href="@{/book/{id}/edit(id=${book.id})}"><i class="far fa-edit"></i></a></td>
                                         <td>
-                                            <a th:href="@{'/book/' + ${book.id} + '/removeFromCategory/' + ${category.id}}"><i class="fas fa-trash-alt"></i></a>
+                                            <a th:href="@{'/book/' + ${book.id} + '/removeFromCategory/' + ${category.id}}"><i class="fa fa-times" aria-hidden="true"></i></a>
                                         </td>
                                     </tr>
                                     </tbody>

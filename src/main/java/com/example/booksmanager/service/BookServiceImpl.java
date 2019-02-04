@@ -2,9 +2,9 @@ package com.example.booksmanager.service;
 
 import com.example.booksmanager.domain.Book;
 import com.example.booksmanager.domain.Category;
+import com.example.booksmanager.exception.RemoveCategoryException;
 import com.example.booksmanager.repository.BookRepository;
 import com.example.booksmanager.repository.CategoryRepository;
-import com.example.booksmanager.support.Message;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -113,7 +113,10 @@ public class BookServiceImpl implements BookService {
         Set<Category> categoriesOfBook = book.getCategories();
         Set<Book> booksOfCategory = category.getBooks();
 
-        //TODO testen ob das notwendig ist
+        //TODO how to properly handle exceptions? SPRING FRAMEWORK GURU?
+        if(categoriesOfBook.size() < 2){
+            throw new RemoveCategoryException("A book must have at least one category.");
+        }
         //remove Book from Category
         booksOfCategory.removeIf( b -> (b.getId() == book.getId()));
         category.setBooks(booksOfCategory);

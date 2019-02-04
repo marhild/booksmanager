@@ -27,6 +27,7 @@ public class Book extends DateAudit {
             inverseJoinColumns = { @JoinColumn(name = "author_id") })
     private Set<Author> authors = new HashSet<>();
 
+    @NotEmpty
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "book_categories",
             joinColumns = { @JoinColumn(name = "book_id") },

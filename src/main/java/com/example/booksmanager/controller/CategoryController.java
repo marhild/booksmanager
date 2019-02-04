@@ -108,7 +108,7 @@ public class CategoryController {
      * @return              list view of category
      */
     @RequestMapping("/categories")
-    public ModelAndView showAllCategoriesWithPagination(@RequestParam("pageSize") Optional<Integer> pageSize,
+    public ModelAndView showAllCategories(@RequestParam("pageSize") Optional<Integer> pageSize,
                                                   @RequestParam("page") Optional<Integer> page) {
         ModelAndView modelAndView = new ModelAndView(CATEGORY_LIST_VIEW);
         Message message = new Message();
@@ -246,6 +246,7 @@ public class CategoryController {
     public String deleteCategory(@PathVariable("id") long id, Model model) {
         Message message = new Message();
         categoryService.delete(id);
+        //TODo flashattr
         message.setSuccess(CATEGORY_DELETED_SUCCESS);
         model.addAttribute("message", message);
         return "redirect:/categories";
