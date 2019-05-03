@@ -52,6 +52,8 @@ public class AuthorController {
 
     @Autowired
     private AuthorService authorService;
+    @Autowired
+    private Message message;
 
     /**
      * GET author by id
@@ -75,18 +77,11 @@ public class AuthorController {
         int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() - 1;
 
         //convert Set<Book> to Page<Book>
-        Page<Book> booksList = new PageImpl<Book>(booksConverted, PageRequest.of(evalPage, evalPageSize), booksByAuthor.size());
+        Page<Book> booksList = new PageImpl(booksConverted, PageRequest.of(evalPage, evalPageSize), booksByAuthor.size());
         PagerModel pager = new PagerModel(booksList.getTotalPages(),booksList.getNumber(),BUTTONS_TO_SHOW);
 
-        Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
-        if(/* if redirected*/ inputFlashMap != null){
-            Message message = (Message) inputFlashMap.get("message");
-            if(booksByAuthor.isEmpty()) message.setInfo(NO_BOOKS_BY_THIS_AUTHOR_INFO);
-        }else{
-            Message message = new Message();
-            if(booksByAuthor.isEmpty()) message.setInfo(NO_BOOKS_BY_THIS_AUTHOR_INFO);
-            model.addAttribute("message", message);
-        }
+        if(booksByAuthor.isEmpty()) message.setInfo(NO_BOOKS_BY_THIS_AUTHOR_INFO);
+        model.addAttribute("message", message);
 
         model.addAttribute("selectedPageSize", evalPageSize);
         model.addAttribute("booksList",booksList);
@@ -104,6 +99,7 @@ public class AuthorController {
      * @param page          subset of all authors
      * @return              list view of authors
      */
+    //TODO Nullpointer exception why???
     @RequestMapping({"/authors"})
     public ModelAndView showAllAuthors(@RequestParam("pageSize") Optional<Integer> pageSize,
                                        @RequestParam("page") Optional<Integer> page,

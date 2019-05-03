@@ -9,9 +9,10 @@ import org.springframework.stereotype.Service;
 import java.util.Set;
 
 @Service
-public interface CategoryService {
+public interface CategoryService extends CrudService<Category, Long> {
 
-    Set<Category> getCategories();
+    //TODO comments
+    Set<Category> getAll();
 
     Category findById(Long id);
 

@@ -1,7 +1,8 @@
 package com.example.booksmanager.support;
 
-import com.example.booksmanager.dateAudit.DateAudit;
+import org.springframework.stereotype.Component;
 
+@Component
 public class Message{
 
     private String success = null;
@@ -33,5 +34,11 @@ public class Message{
 
     public void setInfo(String info) {
         this.info = info;
+    }
+
+    public void reset(){
+        this.error=null;
+        this.success=null;
+        this.info=null;
     }
 }

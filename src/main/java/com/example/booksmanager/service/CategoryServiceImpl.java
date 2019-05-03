@@ -4,6 +4,7 @@ package com.example.booksmanager.service;
 import com.example.booksmanager.domain.Book;
 import com.example.booksmanager.domain.Category;
 import com.example.booksmanager.repository.CategoryRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,14 +17,11 @@ import java.util.Set;
 @Service
 public class CategoryServiceImpl implements CategoryService{
 
-    private final CategoryRepository categoryRepository;
-
-    public CategoryServiceImpl(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
-    }
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @Override
-    public Set<Category> getCategories(){
+    public Set<Category> getAll(){
         Set<Category> categorySet = new HashSet<>();
         categoryRepository.findAll().iterator().forEachRemaining(categorySet::add);
         return categorySet;
@@ -66,7 +64,7 @@ public class CategoryServiceImpl implements CategoryService{
 
     @Override
     public Category getLatestEntry(){
-        Set<Category> categories = getCategories();
+        Set<Category> categories = getAll();
         if(categories.isEmpty()){
             return null;
         }
@@ -79,7 +77,7 @@ public class CategoryServiceImpl implements CategoryService{
     @Override
     public boolean nameIsValid(Category category){
         Set<Category> categories = categoryRepository.findCategoryByName(category.getName());
-
+        //TODO maker shorter
         if(categories.isEmpty()){
             return true;
         }

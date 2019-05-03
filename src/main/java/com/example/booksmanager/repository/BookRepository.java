@@ -22,7 +22,7 @@ public interface BookRepository extends PagingAndSortingRepository<Book, Long> {
      * @return          List of articles with the same title
      * */
     @Query("SELECT a FROM Book a WHERE a.title=:title")
-    Set<Long> findByTitle(@Param("title") String title);
+    Iterable<Book> findByTitle(@Param("title") String title);
 
     /**
      * @param           pageable

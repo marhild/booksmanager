@@ -1,11 +1,14 @@
 package com.example.booksmanager.service;
 
 import com.example.booksmanager.domain.Author;
+import com.example.booksmanager.exception.ResourceNotFoundException;
 import com.example.booksmanager.repository.AuthorRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.awt.print.Book;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
@@ -17,17 +20,14 @@ import java.util.Set;
 @Service
 public class AuthorServiceImpl implements AuthorService{
 
-    private final AuthorRepository authorRepository;
-
-    public AuthorServiceImpl(AuthorRepository authorRepository){
-        this.authorRepository = authorRepository;
-    }
+    @Autowired
+    private  AuthorRepository authorRepository;
 
     /**
      * @return all authors from database
      */
     @Override
-    public Set<Author> getAuthors() {
+    public Set<Author> getAll() {
         Set<Author> authorSet = new HashSet<>();
         authorRepository.findAll().iterator().forEachRemaining(authorSet::add);
         return authorSet;
@@ -86,23 +86,13 @@ public class AuthorServiceImpl implements AuthorService{
     }
 
     /**
-     * A Page is a sublist of a list of objects
-     * @param pageable  Abstract interface for pagination information
-     * @return          all authors from databse as Page<> object
-     */
-    @Override
-    public Page<Author> findAll(Pageable pageable) {
-        return authorRepository.findAll(pageable);
-    }
-
-    /**
      * @return newest author in the database
      */
     @Override
     public Author getLatestEntry() {
-        Set<Author> authors = getAuthors();
+        Set<Author> authors = getAll();
         if(authors.isEmpty()){
-            return null;
+            throw new ResourceNotFoundException("There are no Authors in your DB");
         }else{
             Long latestAuthorId = authorRepository.findTopByOrderByIdDesc();
             return findById(latestAuthorId);
@@ -118,10 +108,16 @@ public class AuthorServiceImpl implements AuthorService{
         Set<Author> authorSet = new HashSet<>();
         authorRepository.findByAuthorFullName(author.getFullName())
                         .iterator().forEachRemaining(authorSet::add);
-        if(!authorSet.isEmpty()){
-            return false;
-        }else{
-            return true;
-        }
+        return !authorSet.isEmpty();
+    }
+
+    /**
+     * A Page is a sublist of a list of objects
+     * @param pageable  Abstract interface for pagination information
+     * @return          all authors from databse as Page<> object
+     */
+    @Override
+    public Page<Author> findAll(Pageable pageable){
+        return authorRepository.findAll(pageable);
     }
 }

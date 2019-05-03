@@ -5,18 +5,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.awt.print.Book;
 import java.util.Set;
 
 /**
  * @author:platoiscoding.com
  */
 @Service
-public interface AuthorService {
+public interface AuthorService extends CrudService<Author, Long> {
     /**
      * @return all authors from database
      */
-    Set<Author> getAuthors();
-
+    Set<Author> getAll();
     /**
      * finds a book from database by id
      * @param id    author_id
@@ -45,17 +45,9 @@ public interface AuthorService {
     void delete(Long id);
 
     /**
-     * A Page is a sublist of a list of objects
-     * @param pageable  Abstract interface for pagination information
-     * @return          all authors from databse as Page<> object
-     */
-    Page<Author> findAll(Pageable pageable);
-
-    /**
      * @return newest entry from database
      */
     Author getLatestEntry();
-
 
     /**
      * for simplicity we ignore the possibility of multiple authors with the same name
@@ -65,4 +57,13 @@ public interface AuthorService {
      * @return true if there is no book with the same author and title in the database
      */
     boolean newAuthorValid(Author author);
+
+    /**
+     * A Page is a sublist of a list of objects
+     * @param pageable  Abstract interface for pagination information
+     * @return          all books from databse as Page<> object
+     */
+    Page<Author> findAll(Pageable pageable);
+
+
 }

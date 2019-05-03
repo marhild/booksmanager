@@ -2,9 +2,9 @@ package com.example.booksmanager.service;
 
 import com.example.booksmanager.domain.Book;
 import com.example.booksmanager.domain.Category;
-import com.example.booksmanager.exception.RemoveCategoryException;
 import com.example.booksmanager.repository.BookRepository;
 import com.example.booksmanager.repository.CategoryRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,19 +20,16 @@ import java.util.Set;
 @Service
 public class BookServiceImpl implements BookService {
 
-    private final BookRepository bookRepository;
-    private final CategoryRepository categoryRepository;
-
-    public BookServiceImpl(BookRepository bookRepository, CategoryRepository categoryRepository) {
-        this.bookRepository = bookRepository;
-        this.categoryRepository = categoryRepository;
-    }
+    @Autowired
+    private BookRepository bookRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     /**
      * @return all books in database
      */
     @Override
-    public Set<Book> getBooks(){
+    public Set<Book> getAll(){
         Set<Book> bookSet = new HashSet<>();
         bookRepository.findAll().iterator().forEachRemaining(bookSet::add);
         return bookSet;
@@ -70,6 +67,7 @@ public class BookServiceImpl implements BookService {
      */
     @Override
     public void update(Long id, Book book){
+        //TODO wenn du die ID in die FORM integrierst, musst du sie nicht in der URL mitschleppen
         Book currentBook = findById(id);
         currentBook.setTitle(book.getTitle());
         currentBook.setAuthors(book.getAuthors());
@@ -94,13 +92,11 @@ public class BookServiceImpl implements BookService {
      */
     @Override
     public Book getLatestEntry(){
-        Set<Book> books = getBooks();
-        if(books.isEmpty()){
-            return null;
-        }else{
-            Long latestBookId = bookRepository.findTopByOrderByIdDesc();
-            return findById(latestBookId);
-        }
+        Set<Book> books = getAll();
+        if(books.isEmpty()){ return null;}
+
+        Long latestBookId = bookRepository.findTopByOrderByIdDesc();
+        return findById(latestBookId);
     }
 
     /**
@@ -109,15 +105,17 @@ public class BookServiceImpl implements BookService {
      * @param category      category to remove from book
      */
     @Override
-    public void removeFromCategory(Book book, Category category){
+    public boolean removeFromCategory(Book book, Category category){
         Set<Category> categoriesOfBook = book.getCategories();
         Set<Book> booksOfCategory = category.getBooks();
 
         //TODO how to properly handle exceptions? SPRING FRAMEWORK GURU?
         if(categoriesOfBook.size() < 2){
-            throw new RemoveCategoryException("A book must have at least one category.");
+            return false;
         }
         //remove Book from Category
+
+        //TODO das ist nicht notwendig, oder?? - updated schon
         booksOfCategory.removeIf( b -> (b.getId() == book.getId()));
         category.setBooks(booksOfCategory);
         category.setUpdatedAt(new Date());
@@ -128,6 +126,7 @@ public class BookServiceImpl implements BookService {
         book.setCategories(categoriesOfBook);
         book.setUpdatedAt(new Date());
         bookRepository.save(book);
+        return true;
     }
 
     /**
@@ -137,14 +136,16 @@ public class BookServiceImpl implements BookService {
      */
     @Override
     public boolean titleValid(Book book) {
-        Set<Long> bookSet = new HashSet<>();
-        bookRepository.findByTitle(book.getTitle())
-                .iterator().forEachRemaining(bookSet::add);
-        if (!bookSet.isEmpty()) {
-            return false;
-        } else {
-            return true;
+        Set<Book> bookSet = new HashSet<>();
+
+        Book currentBook = findById(book.getId());
+        //TODO wenn ich ein existierendes buch editiere und speicher gibt er invalid aus, weil der titel ja "Schon existiert"
+        //TODO wenn ich das umgehen will, wird bei der neuerstellung eines buches ein fehler ausgeworfen, weil es noch keine ID gibt
+        if(!book.getTitle().equals(currentBook.getTitle())){
+            bookRepository.findByTitle(book.getTitle()).iterator().forEachRemaining(bookSet::add);
+            return bookSet.isEmpty();
         }
+        return true;
     }
 
     /**

@@ -13,12 +13,12 @@ import java.util.Set;
  * @author:platoiscoding.com
  */
 @Service
-public interface BookService {
+public interface BookService extends CrudService<Book, Long> {
 
     /**
      * @return all books from database
      */
-    Set<Book> getBooks();
+    Set<Book> getAll();
 
     /**
      * finds a book from database by id
@@ -64,7 +64,7 @@ public interface BookService {
      * @param book          book to remove from category
      * @param category      category to remove from book
      */
-    void removeFromCategory(Book book, Category category);
+    boolean removeFromCategory(Book book, Category category);
 
     /**
      * tests whether there is a book with te same title and author in the database
