@@ -31,7 +31,7 @@ INSERT INTO categories (category_id, created_at, updated_at, name) VALUES
   ( 1004, '2019-01-01 00:00:00', '2019-01-01 00:00:00', 'Computer Science');
 
 
-INSERT INTO book_categories (book_id, category_id) VALUES
+INSERT INTO books_categories (book_id, category_id) VALUES
   ( 1000, '1000'),
   ( 1000, '1002'),
   ( 1000, '1003'),
@@ -65,7 +65,7 @@ INSERT INTO authors (author_id, created_at, updated_at, bio, first_name, full_na
   ( 1002, '2019-01-01 00:00:00', '2019-01-01 00:00:00', 'bio', 'Robert C.', 'Robert C. Martin', 'Martin'),
   ( 1003, '2019-01-01 00:00:00', '2019-01-01 00:00:00', 'bio', 'Andy', 'Andy Weir', 'Weir');
 
-INSERT INTO book_authors (book_id, author_id) VALUES
+INSERT INTO books_authors (book_id, author_id) VALUES
   ( 1000, '1000'),
   ( 1001, '1000'),
   ( 1002, '1000'),

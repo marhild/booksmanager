@@ -30,4 +30,6 @@ public interface AuthorRepository extends PagingAndSortingRepository<Author, Lon
     @Query(value = "SELECT fn FROM Author fn WHERE fn.fullName=:fullName")
     Set<Author> findByAuthorFullName(@Param("fullName") String fullName);
 
+    Page<Author> findAllByBooks(Book book, Pageable pageable);
+
 }

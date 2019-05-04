@@ -1,9 +1,11 @@
 package com.example.booksmanager.service;
 
 
+import com.example.booksmanager.domain.Author;
 import com.example.booksmanager.domain.Book;
 import com.example.booksmanager.domain.Category;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -72,4 +74,13 @@ public interface BookService extends CrudService<Book, Long> {
      * @return true if there is no book with the same author and title in the database
      */
     boolean titleValid(Book book);
+
+    /**
+     *
+     * @param author
+     * @param pageable
+     */
+    Page<Book> findAllByAuthors(Author author, Pageable pageable);
+
+    Page<Book> findAllByCategories(Category category, Pageable pageable);
 }

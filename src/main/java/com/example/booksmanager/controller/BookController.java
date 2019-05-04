@@ -1,6 +1,5 @@
 package com.example.booksmanager.controller;
 
-
 import com.example.booksmanager.domain.Author;
 import com.example.booksmanager.domain.Book;
 import com.example.booksmanager.domain.Category;
@@ -8,10 +7,8 @@ import com.example.booksmanager.service.AuthorService;
 import com.example.booksmanager.service.BookService;
 import com.example.booksmanager.service.CategoryService;
 import com.example.booksmanager.support.Message;
-import com.example.booksmanager.support.PageableView;
-import com.example.booksmanager.support.PagerModel;
+import com.example.booksmanager.support.PageModel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,16 +16,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import javax.validation.Valid;
-import java.util.Optional;
 import java.util.Set;
 
 /**
  * @author platoiscoding.com
  */
-//TODO SQL queries in repositories müssen getestet werden/funken bestimmt nicht
-    //TODO bei newBook muss ein error auftauchen, wenn es keine Autoren oder Categories gibt, da sonst keine Bücher erstellt werden können
 @Controller
 public class BookController {
 
@@ -45,9 +38,8 @@ public class BookController {
     protected static final String BOOK_DELETED_SUCCESS = "Book has been deleted.";
     protected static final String FIELD_VALIDATION_ERROR = "Please correct the field errors.";
     protected static final String MUST_BE_AT_LEAST_ONE_AUTHOR_AND_CATEGRORY = "First, create at least one Category and one Author to add a new Book.";
-    protected static final String BOOK_MUST_AT_LEAST_ONE_CATEGORY= "Couldn't remove Book. A Book must have at least one Category.";
+    protected static final String BOOK_MUST_AT_LEAST_HAVE_ONE_CATEGORY = "Couldn't remove Book. A Book must have at least one Category.";
     protected static final String BOOK_ALREADY_EXISTS= "A Book of this title already exists. Please choose another title.";
-
 
     @Autowired
     private BookService bookService;
@@ -57,6 +49,8 @@ public class BookController {
     private AuthorService authorService;
     @Autowired
     private Message message;
+    @Autowired
+    private PageModel pageModel;
 
     /**
      * GET book by id
@@ -77,30 +71,22 @@ public class BookController {
 
     /**
      * GET all books from database
-     * @param pageSize      number of books per page
-     * @param page          subset of all books
      * @return              list view of books
      */
     @RequestMapping({"/books", "/"})
-    public ModelAndView showAllBooks(@RequestParam("pageSize") Optional<Integer> pageSize,
-                                                   @RequestParam("page") Optional<Integer> page, Model model) {
+    public ModelAndView showAllBooks(Model model) {
 
         if(!model.containsAttribute("message")){
             message.reset();
-            model.addAttribute("message", message);
+            //model.addAttribute("message", message);
         }
-        Set<Book> allBooks = bookService.getAll();
-        if(allBooks.isEmpty()) message.setInfo(NO_BOOKS_IN_DB_INFO);
+        //TODO handle messages ohne zweimal books aufzurufen
+        //Set<Book> allBooks = bookService.getAll();
+        if(bookService.getAll().isEmpty()) message.setInfo(NO_BOOKS_IN_DB_INFO);
 
         ModelAndView modelAndView = new ModelAndView(BOOK_LIST_VIEW);
-
-        PageableView pview = new PageableView(pageSize, page, bookService);
-
-        modelAndView.addObject("booksList",pview.getObjectList());
-        modelAndView.addObject("selectedPageSize", pview.getEvalPageSize());
-        modelAndView.addObject("pageSizes", pview.getPageSizes());
-        modelAndView.addObject("pager", pview.getPager());
-
+        pageModel.initPageAndSize();
+        modelAndView.addObject("books", bookService.findAll(PageRequest.of(pageModel.getPAGE(), pageModel.getSIZE())));
         modelAndView.addObject("message", message);
 
         return modelAndView;
@@ -115,7 +101,8 @@ public class BookController {
     @RequestMapping(path = "/book/new")
     public String newBookForm(Model model) {
 
-        if (!model.containsAttribute("book") /* if not redirected*/) {
+        /* if not redirected*/
+        if (!model.containsAttribute("book")) {
             model.addAttribute("book", new Book());
         }
 
@@ -145,8 +132,6 @@ public class BookController {
     @RequestMapping(path = "/book/create", method = RequestMethod.POST)
     public String createBook(@Valid Book book, BindingResult result, RedirectAttributes attr) {
 
-        //attr.addFlashAttribute("message", message);
-
         if (result.hasErrors() || !bookService.titleValid(book)) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.book", result);
             attr.addFlashAttribute("book", book);
@@ -174,16 +159,12 @@ public class BookController {
     @GetMapping("/book/{id}/edit")
     public String editBookForm(@PathVariable("id") long id, Model model) {
 
-        Set<Category> allCategories = categoryService.getAll();
-        Set<Author> allAuthors = authorService.getAll();
-
         if (!model.containsAttribute("book")) {
-            Book book = bookService.findById(id);
-            model.addAttribute("book", book);
+            model.addAttribute("book", bookService.findById(id));
         }
 
-        model.addAttribute("allCategories", allCategories);
-        model.addAttribute("allAuthors", allAuthors);
+        model.addAttribute("allCategories", categoryService.getAll());
+        model.addAttribute("allAuthors", authorService.getAll());
         model.addAttribute("message", message);
         return BOOK_EDIT_FORM_VIEW;
     }
@@ -191,17 +172,16 @@ public class BookController {
     /**
      * UPDATE book with field values from BOOK_EDIT_FORM_VIEW
      * After the redirect: flash attributes pass attributes to the model
-     * @param id                book_id
+     * @param bookId                book_id
      * @param bookDetails       entity
      * @param result            result of validation of field values from BOOK_EDIT_FORM_VIEW
-     * @param model             attributeValues
      * @param attr              stores flash attributes; used when method returns a redirect view name
      * @return  if !valid: redirect: '/book/{bookId}/edit'
      *          else:      redirect: '/book/{bookId}'
      */
     @RequestMapping(path = "/book/{id}/update", method = RequestMethod.POST)
-    public String updateBook(@PathVariable("id") long id, @Valid Book bookDetails,
-                             BindingResult result, Model model, RedirectAttributes attr){
+    public String updateBook(@PathVariable("id") long bookId, @Valid Book bookDetails,
+                             BindingResult result, RedirectAttributes attr){
 
         attr.addFlashAttribute("message", message);
 
@@ -213,21 +193,21 @@ public class BookController {
             }else{
                 message.setError(FIELD_VALIDATION_ERROR);
             }
-            return "redirect:/book/" + bookDetails.getId() + "/edit";
+            return "redirect:/book/" + bookId + "/edit";
         }
-        bookService.update(id, bookDetails);
+        bookService.update(bookId, bookDetails);
         message.setSuccess(BOOK_UPDATED_SUCCESS);
-        return "redirect:/book/" + id;
+        return "redirect:/book/" + bookId;
     }
 
     /**
      * DELETE book by id from database
-     * @param id            book_id
+     * @param bookId            book_id
      * @return              redirect: '/books'
      */
     @RequestMapping(path = "/book/{id}/delete", method = RequestMethod.GET)
-    public String deleteBook(@PathVariable("id") long id) {
-        bookService.delete(id);
+    public String deleteBook(@PathVariable("id") long bookId) {
+        bookService.delete(bookId);
         message.setSuccess(BOOK_DELETED_SUCCESS);
         return "redirect:/books";
     }
@@ -247,7 +227,7 @@ public class BookController {
         if(bookService.removeFromCategory(book, category)){
             message.setSuccess(book.getTitle() +" has been deleted from " + category.getName() +".");
         }else{
-            message.setError(BOOK_MUST_AT_LEAST_ONE_CATEGORY);
+            message.setError(BOOK_MUST_AT_LEAST_HAVE_ONE_CATEGORY);
         }
         attr.addFlashAttribute("message", message);
         return "redirect:/category/" + category.getId();

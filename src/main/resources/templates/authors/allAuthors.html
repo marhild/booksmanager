@@ -28,7 +28,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each = "author : ${authorsList}">
+                        <tr th:each = "author : ${authors}">
                             <td th:text="${author.fullName}">
                             <td><a th:href="@{/author/{id}(id=${author.id})}"><i class="fab fa-readme"></i></a></td>
                             <td><a th:href="@{/author/{id}/edit(id=${author.id})}"><i class="far fa-edit"></i></a></td>
@@ -40,39 +40,32 @@
             </div>
             <div class="card-footer">
                 <div class="row">
-
-                    <div class="form-group col-md-2">
-                        <select class="form-control" id="pageSizeSelect">
-                            <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}"
-                                    th:value="${pageSize}"
-                                    th:selected="${pageSize} == ${selectedPageSize}">
-                            </option>
-                        </select>
+                    <div class="col">
+                        <!-- authors pagination -->
+                        <nav aria-label="Pagination" th:if="${authors.totalPages gt 0}">
+                            <ul class="pagination justify-content-center font-weight-bold">
+                                <li class="page-item" th:classappend="${authors.number eq 0} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/authors?page={id}(id=${authors.number lt 2 ? 1 : authors.number})}"
+                                       aria-label="Previous" title="Previous Page" data-toggle="tooltip">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item" th:classappend="${i eq authors.number + 1} ? 'active'"
+                                    th:each="i : ${#numbers.sequence( 1, authors.totalPages, 1)}">
+                                    <a class="page-link" th:href="@{/authors?page={id}(id=${i})}" th:text="${i}"
+                                       th:title="${'Page '+ i}" data-toggle="tooltip"></a>
+                                </li>
+                                <li class="page-item" th:classappend="${authors.number + 1 eq authors.totalPages} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/authors?page={id}(id=${authors.number + 2})}"
+                                       aria-label="Next" title="Next Page" data-toggle="tooltip">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
-
-                    <div class="form-group col-md-6"></div>
-
-                    <div th:if="${authorsList.totalPages != 1}" class="form-group col-md-4 pagination">
-                        <ul class="pagination">
-                            <li th:class="${authorsList.number == 0} ? disabled">
-                                <a class="page-link" th:href="@{/authors/(pageSize=${selectedPageSize}, page=1)}">«</a>
-                            </li>
-                            <li th:class="${authorsList.number == 0} ? disabled">
-                                <a class="page-link" th:href="@{/authors/(pageSize=${selectedPageSize}, page=${authorsList.number})}">←</a>
-                            </li>
-                            <li th:class="${authorsList.number == (page - 1)} ? 'active pointer-disabled'"
-                                th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
-                                <a class="page-link" th:href="@{/authors/(pageSize=${selectedPageSize}, page=${page})}" th:text="${page}"></a>
-                            </li>
-                            <li th:class="${authorsList.number + 1 == authorsList.totalPages} ? disabled">
-                                <a class="page-link" th:href="@{/authors/(pageSize=${selectedPageSize}, page=${authorsList.number + 2})}">→</a>
-                            </li>
-                            <li th:class="${authorsList.number + 1 == authorsList.totalPages} ? disabled">
-                                <a class="page-link" th:href="@{/authors/(pageSize=${selectedPageSize}, page=${authorsList.totalPages})}">»</a>
-                            </li>
-                        </ul>
-                    </div>
-
                 </div>
             </div>
         </div>

@@ -28,4 +28,6 @@ public interface CategoryService extends CrudService<Category, Long> {
 
     boolean nameIsValid(Category category);
 
+    Page<Category> findAllByBooks(Book book, Pageable pageable);
+
 }

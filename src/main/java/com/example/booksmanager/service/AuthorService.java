@@ -65,5 +65,5 @@ public interface AuthorService extends CrudService<Author, Long> {
      */
     Page<Author> findAll(Pageable pageable);
 
-
+    Page<Author> findAllByBooks(Book book, Pageable pageable);
 }

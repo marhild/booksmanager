@@ -1,5 +1,6 @@
 package com.example.booksmanager.service;
 
+import com.example.booksmanager.domain.Author;
 import com.example.booksmanager.domain.Book;
 import com.example.booksmanager.domain.Category;
 import com.example.booksmanager.repository.BookRepository;
@@ -67,7 +68,6 @@ public class BookServiceImpl implements BookService {
      */
     @Override
     public void update(Long id, Book book){
-        //TODO wenn du die ID in die FORM integrierst, musst du sie nicht in der URL mitschleppen
         Book currentBook = findById(id);
         currentBook.setTitle(book.getTitle());
         currentBook.setAuthors(book.getAuthors());
@@ -109,13 +109,10 @@ public class BookServiceImpl implements BookService {
         Set<Category> categoriesOfBook = book.getCategories();
         Set<Book> booksOfCategory = category.getBooks();
 
-        //TODO how to properly handle exceptions? SPRING FRAMEWORK GURU?
         if(categoriesOfBook.size() < 2){
             return false;
         }
         //remove Book from Category
-
-        //TODO das ist nicht notwendig, oder?? - updated schon
         booksOfCategory.removeIf( b -> (b.getId() == book.getId()));
         category.setBooks(booksOfCategory);
         category.setUpdatedAt(new Date());
@@ -131,31 +128,32 @@ public class BookServiceImpl implements BookService {
 
     /**
      * tests whether there is an book with te same title in the database
-     * @param book
+     * @param bookDetails       form input
      * @return true if there is no book with the same title in the database
      */
     @Override
-    public boolean titleValid(Book book) {
+    public boolean titleValid(Book bookDetails) {
         Set<Book> bookSet = new HashSet<>();
+        Book currentBook = findById(bookDetails.getId());
 
-        Book currentBook = findById(book.getId());
-        //TODO wenn ich ein existierendes buch editiere und speicher gibt er invalid aus, weil der titel ja "Schon existiert"
-        //TODO wenn ich das umgehen will, wird bei der neuerstellung eines buches ein fehler ausgeworfen, weil es noch keine ID gibt
-        if(!book.getTitle().equals(currentBook.getTitle())){
-            bookRepository.findByTitle(book.getTitle()).iterator().forEachRemaining(bookSet::add);
+        if(bookDetails.getTitle().equals(currentBook.getTitle())){ return true;}
+        else{
+            bookRepository.findByTitle(bookDetails.getTitle()).iterator().forEachRemaining(bookSet::add);
             return bookSet.isEmpty();
         }
-        return true;
     }
 
-    /**
-     * A Page is a sublist of a list of objects
-     * @param pageable  Abstract interface for pagination information
-     * @return          all books from databse as Page<> object
-     */
     @Override
     public Page<Book> findAll(Pageable pageable) {
         return bookRepository.findAll(pageable);
     }
+    @Override
+    public Page<Book> findAllByAuthors(Author author, Pageable pageable){
+        return bookRepository.findAllByAuthors(author, pageable);
+    }
 
+    @Override
+    public Page<Book> findAllByCategories(Category category, Pageable pageable){
+        return bookRepository.findAllByCategories(category, pageable);
+    }
 }

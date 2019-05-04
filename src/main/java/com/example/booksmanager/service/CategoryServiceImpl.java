@@ -3,6 +3,7 @@ package com.example.booksmanager.service;
 
 import com.example.booksmanager.domain.Book;
 import com.example.booksmanager.domain.Category;
+import com.example.booksmanager.exception.ResourceNotFoundException;
 import com.example.booksmanager.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -32,7 +33,7 @@ public class CategoryServiceImpl implements CategoryService{
         Optional<Category> categoryOptional = categoryRepository.findById(id);
 
         if (!categoryOptional.isPresent()) {
-            throw new RuntimeException("Category Not Found!");
+            throw new ResourceNotFoundException("Category Not Found!");
         }
         return categoryOptional.get();
     }
@@ -62,6 +63,7 @@ public class CategoryServiceImpl implements CategoryService{
         return categoryRepository.findAll(pageable);
     }
 
+    //TODO getLatestEntry hat sein eigenes repoQuery
     @Override
     public Category getLatestEntry(){
         Set<Category> categories = getAll();
@@ -82,6 +84,11 @@ public class CategoryServiceImpl implements CategoryService{
             return true;
         }
         return false;
+    }
+
+    @Override
+    public Page<Category> findAllByBooks(Book book, Pageable pageable){
+        return categoryRepository.findAllByBooks(book, pageable);
     }
 
 }

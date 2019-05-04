@@ -1,7 +1,9 @@
 package com.example.booksmanager.repository;
 
 
+import com.example.booksmanager.domain.Author;
 import com.example.booksmanager.domain.Book;
+import com.example.booksmanager.domain.Category;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -30,5 +32,15 @@ public interface BookRepository extends PagingAndSortingRepository<Book, Long> {
      *                  specified by the Pageable object
      */
     Page<Book> findAll(Pageable pageable);
+
+    /**
+     * DB has table 'books_authors:(book_id, author_id)'
+     * @param author            Author object, contains author_Id
+     * @param pageable          Abstract interface for pagination information from PageRequest
+     * @return                  Page<T> Object with Book Objects
+     */
+    Page<Book> findAllByAuthors(Author author, Pageable pageable);
+
+    Page<Book> findAllByCategories(Category category, Pageable pageable);
 
 }

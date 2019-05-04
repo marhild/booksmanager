@@ -31,4 +31,6 @@ public interface CategoryRepository extends PagingAndSortingRepository<Category,
      */
     @Query(value = "SELECT u.name FROM Category u WHERE u.name = :categoryName")
     Set<Category> findCategoryByName(@Param("categoryName") String categoryName);
+
+    Page<Category> findAllByBooks(Book book, Pageable pageable);
 }

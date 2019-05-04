@@ -120,4 +120,9 @@ public class AuthorServiceImpl implements AuthorService{
     public Page<Author> findAll(Pageable pageable){
         return authorRepository.findAll(pageable);
     }
+
+    @Override
+    public Page<Author> findAllByBooks(Book book, Pageable pageable){
+        return authorRepository.findAllByBooks(book, pageable);
+    }
 }
