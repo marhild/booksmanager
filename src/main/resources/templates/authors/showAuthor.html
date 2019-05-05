@@ -48,8 +48,8 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <tr th:each = "book : ${booksList}">
-                                        <td th:text="${book.title}">Thinking Fast And Slow</td>
+                                    <tr th:each = "book : ${books}">
+                                        <td th:text="${book.title}"></td>
                                         <td th:text="${book.year}"></td>
                                         <td><a th:href="@{/book/{id}(id=${book.id})}"><i class="fab fa-readme"></i></a></td>
                                         <td><a th:href="@{/book/{id}/edit(id=${book.id})}"><i class="far fa-edit"></i></a></td>
@@ -65,39 +65,32 @@
 
             <div class="card-footer">
                 <div class="row">
-
-                    <div class="form-group col-md-2">
-                        <select class="form-control" id="pageSizeSelect">
-                            <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}"
-                                    th:value="${pageSize}"
-                                    th:selected="${pageSize} == ${selectedPageSize}">
-                            </option>
-                        </select>
+                    <div class="col">
+                        <!-- authors pagination -->
+                        <nav aria-label="Pagination" th:if="${books.totalPages gt 0}">
+                            <ul class="pagination justify-content-center font-weight-bold">
+                                <li class="page-item" th:classappend="${books.number eq 0} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/author/{authorId}?page={id}(authorId=${author.id},id=${books.number lt 2 ? 1 : books.number})}"
+                                       aria-label="Previous" title="Previous Page" data-toggle="tooltip">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item" th:classappend="${i eq books.number + 1} ? 'active'"
+                                    th:each="i : ${#numbers.sequence( 1, books.totalPages, 1)}">
+                                    <a class="page-link" th:href="@{/author/{authorId}?page={id}(authorId=${author.id},id=${i})}" th:text="${i}"
+                                       th:title="${'Page '+ i}" data-toggle="tooltip"></a>
+                                </li>
+                                <li class="page-item" th:classappend="${books.number + 1 eq books.totalPages} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/author/{authorId}?page={id}(authorId=${author.id},id=${books.number + 2})}"
+                                       aria-label="Next" title="Next Page" data-toggle="tooltip">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
-
-                    <div class="form-group col-md-6"></div>
-
-                    <div th:if="${booksList.totalPages != 1}" class="form-group col-md-4 pagination">
-                        <ul class="pagination">
-                            <li th:class="${booksList.number == 0} ? disabled">
-                                <a class="page-link" th:href="@{/author/{id}(pageSize=${selectedPageSize}, page=1, id=${author.id})}">«</a>
-                            </li>
-                            <li th:class="${booksList.number == 0} ? disabled">
-                                <a class="page-link" th:href="@{/author/{id}(pageSize=${selectedPageSize}, page=${booksList.number}, id=${author.id})}">←</a>
-                            </li>
-                            <li th:class="${booksList.number == (page - 1)} ? 'active pointer-disabled'"
-                                th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
-                                <a class="page-link" th:href="@{/author/{id}(pageSize=${selectedPageSize}, page=${page},id=${author.id})}" th:text="${page}"></a>
-                            </li>
-                            <li th:class="${booksList.number + 1 == booksList.totalPages} ? disabled">
-                                <a class="page-link" th:href="@{/author/{id}(pageSize=${selectedPageSize}, page=${booksList.number + 2}, id=${author.id})}">→</a>
-                            </li>
-                            <li th:class="${booksList.number + 1 == booksList.totalPages} ? disabled">
-                                <a class="page-link" th:href="@{/author/{id}(pageSize=${selectedPageSize}, page=${booksList.totalPages}, id=${author.id})}">»</a>
-                            </li>
-                        </ul>
-                    </div>
-
                 </div>
             </div>
 

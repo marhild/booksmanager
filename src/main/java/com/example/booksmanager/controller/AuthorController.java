@@ -39,7 +39,7 @@ public class AuthorController {
     protected static final String AUTHOR_DELETED_SUCCESS = "Author has been deleted.";
     protected static final String NO_BOOKS_BY_THIS_AUTHOR_INFO = "There are no books written by this Author.";
     protected static final String FIELD_VALIDATION_ERROR = "Please correct the field errors.";
-    protected static final String NO_DUPLICATES_ALLOWED_ERROR = "An Author with the same Name already exists in the database.";
+    protected static final String AUTHOR_ALREADY_EXISTS = "An Author with the same Name already exists in the database.";
 
     @Autowired
     private AuthorService authorService;
@@ -81,31 +81,14 @@ public class AuthorController {
     @RequestMapping({"/authors"})
     public ModelAndView showAllAuthors(Model model, HttpServletRequest request ) {
 
-        if(!model.containsAttribute("message")){
-            message.reset();
-            //model.addAttribute("message", message);
-        }
+        if(!model.containsAttribute("message")){ message.reset(); }
+        if(authorService.getAll().isEmpty()) message.setInfo(NO_AUTHORS_IN_DB_INFO);
 
-        Set<Author> allAuthors = authorService.getAll();
         ModelAndView modelAndView = new ModelAndView(AUTHOR_LIST_VIEW);
 
-
-        Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
-        /* if redirected from delete*/
-        /*
-        if(inputFlashMap != null){
-            Message message = (Message) inputFlashMap.get("message");
-            if(allAuthors.isEmpty()) message.setInfo(NO_AUTHORS_IN_DB_INFO);
-        }else{
-            if(allAuthors.isEmpty()) message.setInfo(NO_AUTHORS_IN_DB_INFO);
-            modelAndView.addObject("message", message);
-        }*/
-        //TODO mit gleicher route von bookController vergleichen wegen messages
-        if(inputFlashMap != null){message = (Message) inputFlashMap.get("message");}
-        if(allAuthors.isEmpty()) message.setInfo(NO_AUTHORS_IN_DB_INFO);
-        modelAndView.addObject("message", message);
         pageModel.initPageAndSize();
         modelAndView.addObject("authors", authorService.findAll(PageRequest.of(pageModel.getPAGE(), pageModel.getSIZE())));
+        modelAndView.addObject("message", message);
         return modelAndView;
     }
 
@@ -119,12 +102,11 @@ public class AuthorController {
     public String newAuthorForm(Model model, HttpServletRequest request) {
         if (!model.containsAttribute("author")) {
             model.addAttribute("author", new Author());
-            model.addAttribute("message", message);
         }
         //retrieve message from FlashAttribute
-        Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
-        if (inputFlashMap != null) { message = (Message) inputFlashMap.get("message"); }
-
+        //Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
+        //if (inputFlashMap != null) { message = (Message) inputFlashMap.get("message"); }
+        model.addAttribute("message", message);
         return AUTHOR_ADD_FORM_VIEW;
     }
 
@@ -142,12 +124,12 @@ public class AuthorController {
     @RequestMapping(path = "/author/create", method = RequestMethod.POST)
     public String createAuthor(@Valid Author author, BindingResult result,
                              RedirectAttributes attr) {
-
+        message.reset();
         if (result.hasErrors()) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.author", result);
             attr.addFlashAttribute("author", author);
-            if(!authorService.newAuthorValid(author)){
-                message.setError(NO_DUPLICATES_ALLOWED_ERROR);
+            if(!authorService.authorNameValid(author)){
+                message.setError(AUTHOR_ALREADY_EXISTS);
             }else{
                 message.setError(FIELD_VALIDATION_ERROR);
             }
@@ -155,8 +137,9 @@ public class AuthorController {
             return "redirect:/author/new";
         }
         Author createdAuthor = authorService.create(author);
+
         message.setSuccess(NEW_AUTHOR_SUCCESS);
-        attr.addFlashAttribute("message", message);
+        //attr.addFlashAttribute("message", message);
 
         return "redirect:/author/" + createdAuthor.getId();
     }
@@ -164,20 +147,16 @@ public class AuthorController {
     /**
      * FORM for EDIT author
      * In case of redirect model will contain "author"
-     * @param id        author_id
+     * @param authorId        author_id
      * @param model     attributeValues
      * @return          AUTHOR_EDIT_FORM_VIEW
      */
     @GetMapping("/author/{id}/edit")
-    public String editAuthorForm(@PathVariable("id") long id, Model model) {
-        Author author = authorService.findById(id);
-
+    public String editAuthorForm(@PathVariable("id") long authorId, Model model) {
         if (!model.containsAttribute("author")) {
-            model.addAttribute("author", author);
-        } else{
-            message.setError(FIELD_VALIDATION_ERROR);
+            model.addAttribute("author", authorService.findById(authorId));
         }
-        //TODO author valid
+        //message.reset();
         model.addAttribute("message", message);
         return AUTHOR_EDIT_FORM_VIEW;
     }
@@ -185,7 +164,7 @@ public class AuthorController {
     /**
      * UPDATE author with field values from AUTHOR_EDIT_FORM_VIEW
      * After the redirect: flash attributes pass attributes to the model
-     * @param id                author_id
+     * @param authorId          author_id
      * @param authorDetails     entity
      * @param result            result of validation of field values from AUTHOR_EDIT_FORM_VIEW
      * @param attr              stores flash attributes; used when method returns a redirect view name
@@ -193,25 +172,25 @@ public class AuthorController {
      *          else:      redirect: '/author/{authorId}'
      */
     @RequestMapping(path = "/author/{id}/update", method = RequestMethod.POST)
-    public String updateAuthor(@PathVariable("id") long id, @Valid Author authorDetails,
+    public String updateAuthor(@PathVariable("id") long authorId, @Valid Author authorDetails,
                              BindingResult result, RedirectAttributes attr){
 
-        if (result.hasErrors()) {
+        if (result.hasErrors() || !authorService.authorNameValid(authorDetails)) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.author", result);
             attr.addFlashAttribute("author", authorDetails);
-            if(!authorService.newAuthorValid(authorDetails)){
-                message.setError(NO_DUPLICATES_ALLOWED_ERROR);
+            if(!authorService.authorNameValid(authorDetails)){
+                message.setError(AUTHOR_ALREADY_EXISTS);
             }else{
                 message.setError(FIELD_VALIDATION_ERROR);
             }
             //attr.addFlashAttribute("message", message);
-            return "redirect:/author/" + authorDetails.getId() + "/edit";
+            return "redirect:/author/" + authorId + "/edit";
         }
 
-        authorService.update(id, authorDetails);
+        authorService.update(authorId, authorDetails);
         message.setSuccess(AUTHOR_UPDATED_SUCCESS);
         attr.addFlashAttribute("message", message);
-        return "redirect:/author/" + id;
+        return "redirect:/author/" + authorId;
     }
 
     /**
@@ -223,7 +202,7 @@ public class AuthorController {
     public String deleteAuthor(@PathVariable("id") long authorId, RedirectAttributes attr) {
         authorService.delete(authorId);
         message.setSuccess(AUTHOR_DELETED_SUCCESS);
-        attr.addFlashAttribute("message", message);
+        //attr.addFlashAttribute("message", message);
         return "redirect:/authors";
         //TODO werden dann auch alle betroffenen Bücher gelöscht? NEIN! beheben!! PopUp bei Löschversuch!!
         //TODO bei removeBookFromCategory functs: abgucken

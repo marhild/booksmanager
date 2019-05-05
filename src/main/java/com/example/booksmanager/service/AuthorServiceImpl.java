@@ -104,7 +104,7 @@ public class AuthorServiceImpl implements AuthorService{
      * @return false if there exists an author with same name in the database
      */
     @Override
-    public boolean newAuthorValid(Author author) {
+    public boolean authorNameValid(Author author) {
         Set<Author> authorSet = new HashSet<>();
         authorRepository.findByAuthorFullName(author.getFullName())
                         .iterator().forEachRemaining(authorSet::add);

@@ -1,76 +1,89 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+<th:block th:include="fragments/head"></th:block>
+<body>
 
-<th:block th:include="fragments/header"></th:block>
-
-<th:block th:include="fragments/sidebarAuthors"></th:block>
-
-<div id="content-wrapper">
-
-    <div class="container-fluid">
-
-        <th:block th:include="fragments/messageBox"></th:block>
-
-        <!-- Table -->
-        <div class="card mb-3">
-            <div class="card-header">
-                <a class="btn btn-dark" th:href="@{/author/new}"><i class="far fa-plus-square"></i> Add Author</a>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered" width="100%" cellspacing="0">
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each = "author : ${authors}">
-                            <td th:text="${author.fullName}">
-                            <td><a th:href="@{/author/{id}(id=${author.id})}"><i class="fab fa-readme"></i></a></td>
-                            <td><a th:href="@{/author/{id}/edit(id=${author.id})}"><i class="far fa-edit"></i></a></td>
-                            <td><a th:href="@{/author/{id}/delete(id=${author.id})}"><i class="fas fa-trash-alt"></i></a></td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="card-footer">
+<div class="wrapper">
+    <th:block th:include="fragments/sidebarAuthors"></th:block>
+    <div class="main-panel">
+        <div class="content">
+            <div class="container-fluid">
+                <th:block th:include="fragments/messageBox"></th:block>
                 <div class="row">
-                    <div class="col">
-                        <!-- authors pagination -->
-                        <nav aria-label="Pagination" th:if="${authors.totalPages gt 0}">
-                            <ul class="pagination justify-content-center font-weight-bold">
-                                <li class="page-item" th:classappend="${authors.number eq 0} ? 'disabled'">
-                                    <a class="page-link"
-                                       th:href="@{/authors?page={id}(id=${authors.number lt 2 ? 1 : authors.number})}"
-                                       aria-label="Previous" title="Previous Page" data-toggle="tooltip">
-                                        <span aria-hidden="true">&laquo;</span>
-                                    </a>
-                                </li>
-                                <li class="page-item" th:classappend="${i eq authors.number + 1} ? 'active'"
-                                    th:each="i : ${#numbers.sequence( 1, authors.totalPages, 1)}">
-                                    <a class="page-link" th:href="@{/authors?page={id}(id=${i})}" th:text="${i}"
-                                       th:title="${'Page '+ i}" data-toggle="tooltip"></a>
-                                </li>
-                                <li class="page-item" th:classappend="${authors.number + 1 eq authors.totalPages} ? 'disabled'">
-                                    <a class="page-link"
-                                       th:href="@{/authors?page={id}(id=${authors.number + 2})}"
-                                       aria-label="Next" title="Next Page" data-toggle="tooltip">
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="header">
+                                <h4 class="title">Authors</h4>
+                                <p class="category">view, edit & delete authors</p>
+                            </div>
+                            <div class="content">
+                                <div class="content table-responsive table-full-width">
+                                    <table class="table table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each = "author : ${authors}">
+                                            <td th:text="${author.fullName}">
+                                            <td><a th:href="@{/author/{id}(id=${author.id})}"><i class="fab fa-readme"></i></a></td>
+                                            <td><a th:href="@{/author/{id}/edit(id=${author.id})}"><i class="far fa-edit"></i></a></td>
+                                            <td><a th:href="@{/author/{id}/delete(id=${author.id})}"><i class="fas fa-trash-alt"></i></a></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="footer">
+                                    <div class="row">
+                                        <!-- authors pagination -->
+                                        <nav aria-label="Pagination" th:if="${authors.totalPages gt 0}">
+                                            <ul class="pagination justify-content-center font-weight-bold">
+                                                <li class="page-item" th:classappend="${authors.number eq 0} ? 'disabled'">
+                                                    <a class="page-link"
+                                                       th:href="@{/authors?page={id}(id=${authors.number lt 2 ? 1 : authors.number})}"
+                                                       aria-label="Previous" title="Previous Page" data-toggle="tooltip">
+                                                        <span aria-hidden="true">&laquo;</span>
+                                                    </a>
+                                                </li>
+                                                <li class="page-item" th:classappend="${i eq authors.number + 1} ? 'active'"
+                                                    th:each="i : ${#numbers.sequence( 1, authors.totalPages, 1)}">
+                                                    <a class="page-link" th:href="@{/authors?page={id}(id=${i})}" th:text="${i}"
+                                                       th:title="${'Page '+ i}" data-toggle="tooltip"></a>
+                                                </li>
+                                                <li class="page-item" th:classappend="${authors.number + 1 eq authors.totalPages} ? 'disabled'">
+                                                    <a class="page-link"
+                                                       th:href="@{/authors?page={id}(id=${authors.number + 2})}"
+                                                       aria-label="Next" title="Next Page" data-toggle="tooltip">
+                                                        <span aria-hidden="true">&raquo;</span>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
-    <!-- /.container-fluid -->
+    <!-- /.main-panel -->
 
     <th:block th:include="fragments/footer"></th:block>
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+</div>
+<!-- .wrapper -->
+
+</body>
+<th:block th:include="fragments/scripts"></th:block>
+</html>

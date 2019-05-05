@@ -76,12 +76,7 @@ public class BookController {
     @RequestMapping({"/books", "/"})
     public ModelAndView showAllBooks(Model model) {
 
-        if(!model.containsAttribute("message")){
-            message.reset();
-            //model.addAttribute("message", message);
-        }
-        //TODO handle messages ohne zweimal books aufzurufen
-        //Set<Book> allBooks = bookService.getAll();
+        if(!model.containsAttribute("message")){ message.reset(); }
         if(bookService.getAll().isEmpty()) message.setInfo(NO_BOOKS_IN_DB_INFO);
 
         ModelAndView modelAndView = new ModelAndView(BOOK_LIST_VIEW);
@@ -129,6 +124,7 @@ public class BookController {
      * @return  if !valid: redirect: '/book/new'
      *          else:      redirect: '/book/{bookId}'
      */
+    //TODO gibt bei einer leeren categorie keinen field error aus
     @RequestMapping(path = "/book/create", method = RequestMethod.POST)
     public String createBook(@Valid Book book, BindingResult result, RedirectAttributes attr) {
 
@@ -183,8 +179,6 @@ public class BookController {
     public String updateBook(@PathVariable("id") long bookId, @Valid Book bookDetails,
                              BindingResult result, RedirectAttributes attr){
 
-        attr.addFlashAttribute("message", message);
-
         if (result.hasErrors() || !bookService.titleValid(bookDetails)) {
             attr.addFlashAttribute("org.springframework.validation.BindingResult.book", result);
             attr.addFlashAttribute("book", bookDetails);
@@ -197,6 +191,7 @@ public class BookController {
         }
         bookService.update(bookId, bookDetails);
         message.setSuccess(BOOK_UPDATED_SUCCESS);
+        attr.addFlashAttribute("message", message);
         return "redirect:/book/" + bookId;
     }
 

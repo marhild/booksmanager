@@ -50,13 +50,11 @@ public interface AuthorService extends CrudService<Author, Long> {
     Author getLatestEntry();
 
     /**
-     * for simplicity we ignore the possibility of multiple authors with the same name
-     *
      * tests whether there is already an author with te same name in the database
      * @param author
      * @return true if there is no book with the same author and title in the database
      */
-    boolean newAuthorValid(Author author);
+    boolean authorNameValid(Author author);
 
     /**
      * A Page is a sublist of a list of objects

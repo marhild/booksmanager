@@ -134,9 +134,13 @@ public class BookServiceImpl implements BookService {
     @Override
     public boolean titleValid(Book bookDetails) {
         Set<Book> bookSet = new HashSet<>();
-        Book currentBook = findById(bookDetails.getId());
+        bookRepository.findByTitle(bookDetails.getTitle()).iterator().forEachRemaining(bookSet::add);
 
-        if(bookDetails.getTitle().equals(currentBook.getTitle())){ return true;}
+        if(bookDetails.getId() != null){
+            Book currentBook = findById(bookDetails.getId());
+            return (bookDetails.getTitle().equals(currentBook.getTitle())
+                    && (bookSet.size() == 1));
+        }
         else{
             bookRepository.findByTitle(bookDetails.getTitle()).iterator().forEachRemaining(bookSet::add);
             return bookSet.isEmpty();

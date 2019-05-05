@@ -1,23 +1,28 @@
 <!-- Message Box-->
 
-    <div class="row" th:if="${message.success != null}" >
-        <div class="col">
-            <div class="alert alert-success" role="alert">
+
+<!--<div class="row" th:if="${message.info != null}">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <button type="button" aria-hidden="true" class="close">×</button>
+            <span th:text="${message.info}"></span>
+        </div>
+    </div>
+</div>
+
+    <div class="alert alert-success">
+        <div class="row" th:if="${message.success != null}">
+            <div class="col-md-12">
+                <button type="button" aria-hidden="true" class="close">×</button>
                 <span th:text="${message.success}"></span>
             </div>
         </div>
     </div>
-    <div class="row" th:if="${message.error != null}" >
-        <div class="col">
-            <div class="alert alert-danger" role="alert">
-                <span th:text="${message.error}"></span>
+    <div class="alert alert-warning">
+        <div class="row" th:if="${message.warning != null}">
+            <div class="col-md-12">
+                <button type="button" aria-hidden="true" class="close">×</button>
+                <span th:text="${message.warning}"></span>
             </div>
         </div>
-    </div>
-    <div class="row" th:if="${message.info != null}">
-        <div class="col-md-12">
-            <div class="alert alert-info" role="alert">
-                <span th:text="${message.info}"></span>
-            </div>
-        </div>
-    </div>
+    </div>-->
